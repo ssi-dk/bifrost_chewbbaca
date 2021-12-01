@@ -2,7 +2,7 @@
 # BUILD_ENV options (dev, test, prod) dev for local testing and test for github actions testing on prod ready code
 ARG BUILD_ENV="prod"
 ARG MAINTAINER="kimn@ssi.dk;"
-ARG BIFROST_COMPONENT_NAME="bifrost_cge_resfinder"
+ARG BIFROST_COMPONENT_NAME="bifrost_chewBBACA"
 ARG FORCE_DOWNLOAD=true
 
 #---------------------------------------------------------------------------------------------------
@@ -74,38 +74,14 @@ RUN \
         nano \
         less; \
     pip install -q \
-        cgecore==1.5.6 \
-        cgelib==0.3.0 \
-        tabulate==0.8.3 \
-        biopython==1.74 \
         python-dateutil==2.8.1; \
-    ls /usr/bin/make; \
-    git clone --branch 1.3.23 https://bitbucket.org/genomicepidemiology/kma.git && cd kma && make
-ENV PATH /bifrost/components/${BIFROST_COMPONENT_NAME}/kma:$PATH
+    conda install -c bioconda blast=2.12.0; \
+    conda install -c bioconda prodigal=2.6.3; \
+    conda install -c bioconda chewbacca=2.0.16
 
-# Resfinder
-WORKDIR /bifrost/components/${BIFROST_COMPONENT_NAME}
-RUN \
-    git clone --branch dev4.2 https://bitbucket.org/genomicepidemiology/resfinder.git
-ENV PATH /bifrost/components/${BIFROST_COMPONENT_NAME}/resfinder:$PATH
-
-#install resfinder db
-WORKDIR /bifrost/components/${BIFROST_COMPONENT_NAME}/resources
-RUN \
-    git clone https://git@bitbucket.org/genomicepidemiology/resfinder_db.git && \
-    cd resfinder_db && \
-    git checkout e14da67 && \ 
-    python3 INSTALL.py kma_index;
-
-WORKDIR /bifrost/components/${BIFROST_COMPONENT_NAME}/resources
-RUN \
-    git clone https://git@bitbucket.org/genomicepidemiology/pointfinder_db.git && \
-    cd pointfinder_db && \
-    git checkout 7f6b95c && \ 
-    python3 INSTALL.py kma_index;
 #- Additional resources (files/DBs): end -----------------------------------------------------------
 
 #- Set up entry point:start ------------------------------------------------------------------------
-ENTRYPOINT ["python3", "-m", "bifrost_cge_resfinder"]
-CMD ["python3", "-m", "bifrost_cge_resfinder", "--help"]
+ENTRYPOINT ["python3", "-m", "bifrost_chewBBACA"]
+CMD ["python3", "-m", "bifrost_chewBBACA", "--help"]
 #- Set up entry point:end --------------------------------------------------------------------------

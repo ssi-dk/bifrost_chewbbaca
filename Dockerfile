@@ -2,7 +2,7 @@
 # BUILD_ENV options (dev, test, prod) dev for local testing and test for github actions testing on prod ready code
 ARG BUILD_ENV="prod"
 ARG MAINTAINER="kimn@ssi.dk;"
-ARG BIFROST_COMPONENT_NAME="bifrost_chewBBACA"
+ARG BIFROST_COMPONENT_NAME="bifrost_chewbbaca"
 ARG FORCE_DOWNLOAD=true
 
 #---------------------------------------------------------------------------------------------------
@@ -76,12 +76,13 @@ RUN \
     pip install -q \
         python-dateutil==2.8.1; \
     conda install -c bioconda blast=2.12.0; \
-    conda install -c bioconda prodigal=2.6.3; \
-    conda install -c bioconda chewbacca=2.0.16
+    conda install -c bioconda prodigal=2.6.3
+#    conda install python=3.6.5; \
+#    conda install -c bioconda chewbbaca=2.0.16
 
 #- Additional resources (files/DBs): end -----------------------------------------------------------
 
 #- Set up entry point:start ------------------------------------------------------------------------
-ENTRYPOINT ["python3", "-m", "bifrost_chewBBACA"]
-CMD ["python3", "-m", "bifrost_chewBBACA", "--help"]
+ENTRYPOINT ["python3", "-m", "bifrost_chewbbaca"]
+CMD ["python3", "-m", "bifrost_chewbbaca", "--help"]
 #- Set up entry point:end --------------------------------------------------------------------------

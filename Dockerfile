@@ -18,8 +18,7 @@ ONBUILD LABEL \
     environment="${BUILD_ENV}" \
     maintainer="${MAINTAINER}"
 ONBUILD RUN \
-    conda install -yq -c conda-forge -c bioconda -c default snakemake-minimal==5.7.1; \
-    conda install -yq -c conda-forge -c bioconda -c default bbmap==38.58; 
+    conda install -yq -c conda-forge -c bioconda -c default snakemake-minimal==5.7.1;
 
 
 #---------------------------------------------------------------------------------------------------
@@ -73,10 +72,10 @@ RUN \
         libmagic-dev \
         nano \
         less; \
-    pip install -q \
-        python-dateutil==2.8.1; \
     conda install -c bioconda blast=2.12.0; \
-    conda install -c bioconda prodigal=2.6.3
+    conda install -c bioconda prodigal=2.6.3; \
+    pip install -q \
+        python-dateutil==2.8.1; 
 #    conda install python=3.6.5; \
 #    conda install -c bioconda chewbbaca=2.0.16
 

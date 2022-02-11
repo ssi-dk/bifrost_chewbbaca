@@ -1,3 +1,3 @@
-# bifrost_cge_resfinder
+# bifrost_chewbbaca
 
-runs some resistance checks yo
+Uses the chewBBACA pipeline to perform core genome MultiLocus Sequence Typing (cgMLST) on bacterial assemblies.

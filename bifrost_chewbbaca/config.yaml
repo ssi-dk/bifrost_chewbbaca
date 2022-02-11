@@ -1,53 +1,48 @@
 #-Basic info----------------------------------------------------------------------------------------
-display_name: cge_resfinder
-name: &name cge_resfinder__v2_2_3__d98c13b
+display_name: chewbbaca
+name: &name chewbbaca__v0_0_1__
 version:
   schema: ["v2_1_0"]
-  code: v2_2_3
-  resource: "d98c13b"
+  code: v0_0_1
+  resource: ""
 #---------------------------------------------------------------------------------------------------
 
 #-Details-------------------------------------------------------------------------------------------
 details:
   target: [sample]
   description: >
-    This performs read based mapping against the resfinder and pointfinder DBs. The options show the species entries 
-    which will be used for pointfinder. This is done against using kma mode. 
+    This performs read based cgMLST with the chewbbaca suite https://github.com/B-UMMI/chewBBACA using
+    either custom schemas or the ones provided with chewbbaca.
 #---------------------------------------------------------------------------------------------------
 
 #-Category info-------------------------------------------------------------------------------------
-category: [resistance]
+category: [chewbbaca]
 #---------------------------------------------------------------------------------------------------
 
 #-Install-------------------------------------------------------------------------------------------
 install:
   path: # Set by install program
-  dockerfile: docker://ssidk/bifrost_cge_resfinder
+  dockerfile: docker://ssidk/bifrost_chewbbaca
 #---------------------------------------------------------------------------------------------------
 
 #-Options-------------------------------------------------------------------------------------------
 options:
-  resfinder_current_species: {Campylobacter,
-                              Campylobacter jejuni,
+  chewbbaca_current_species: {Campylobacter jejuni,
                               Campylobacter coli,
-                              Enterococcus faecalis,
-                              Enterococcus faecium,
+                              Yersinia,
                               Escherichia coli,
-                              Helicobacter pylori,
+                              Shigella,
                               Klebsiella,
-                              Mycobacterium tuberculosis,
-                              Neisseria gonorrhoeae,
-                              Plasmodium falciparum,
-                              Salmonella,
-                              Salmonella enterica,
-                              Staphylococcus aureus}
+                              Listeria monocytogenes,
+                              Salmonella}
 #---------------------------------------------------------------------------------------------------
 
 #-Required resource files---------------------------------------------------------------------------
 resources:
-  #adapters_fasta: "/bifrost/components/bifrost_min_read_check/resources/adapters.fasta"
-  resfinder_db: "/bifrost/components/bifrost_cge_resfinder/resources/resfinder_db"
-  pointfinder_db: "/bifrost/components/bifrost_cge_resfinder/resources/pointfinder_db"
+  #schemes: "/bifrost/components/bifrost_cge_resfinder/resources/resfinder_db"
+  #training_files: "/bifrost/components/bifrost_cge_resfinder/resources/pointfinder_db"
+  schemes: "/local_files/Listeria_monocytogenes_Pasteur_cgMLST_2021-05-31T15"
+  training_files: "/local_files/Listeria_monocytogenes.trn"
 #---------------------------------------------------------------------------------------------------
 
 #-Requirements to run component---------------------------------------------------------------------

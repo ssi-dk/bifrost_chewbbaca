@@ -1,9 +1,9 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='bifrost_cge_resfinder',
-    version='v2_2_3',
-    url='https://github.com/ssi-dk/bifrost_cge_resfinder',
+    name='bifrost_chewbbaca',
+    version='v0_0_1',
+    url='https://github.com/ssi-dk/bifrost_chewbbaca',
 
     # Author details
     author='Kim Ng',
@@ -15,7 +15,7 @@ setup(
     packages=find_packages(),
     python_requires='>=3.6',
 
-    package_data={'bifrost_cge_resfinder': ['config.yaml', 'pipeline.smk']},
+    package_data={'bifrost_chewbbaca': ['config.yaml', 'pipeline.smk']},
     include_package_data=True,
 
     install_requires=[

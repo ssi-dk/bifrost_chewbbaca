@@ -9,7 +9,7 @@ from bifrostlib.datahandling import SampleReference
 from bifrostlib.datahandling import Sample
 from bifrostlib.datahandling import RunReference
 from bifrostlib.datahandling import Run
-from bifrost_cge_resfinder import launcher
+from bifrost_chewbbaca import launcher
 import pymongo
 import os
 import shutil
@@ -20,11 +20,11 @@ def test_connection():
     assert datahandling.has_a_database_connection()
     assert "TEST" in os.environ['BIFROST_DB_KEY'].upper()  # A very basic piece of protection ensuring the word test is in the DB
 
-class TestBifrostCGEResfinder:
-    component_name = "cge_resfinder__v2_2_3"
-    component_name = component_name + "__d98c13b"
+class TestBifrostchewBBACA:
+    component_name = "chewbbaca__v0_0_1"
+    component_name = component_name + "__placeholder"
     current_dir = os.getcwd()
-    test_dir = "/bifrost/test_data/output/test__cge_resfinder/"
+    test_dir = "/bifrost/test_data/output/test__chewbbaca/"
     json_entries = [
         {
             "_id": {"$oid": "000000000000000000000001"}, 

@@ -75,7 +75,8 @@ RUN \
     conda install -c bioconda blast=2.12.0; \
     conda install -c bioconda prodigal=2.6.3; \
     pip install -q \
-        python-dateutil==2.8.1; 
+        python-dateutil==2.8.1 \
+        chewbbaca==2.8.5; 
 #    conda install python=3.6.5; \
 #    conda install -c bioconda chewbbaca=2.0.16
 

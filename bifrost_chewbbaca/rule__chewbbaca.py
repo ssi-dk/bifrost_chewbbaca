@@ -8,6 +8,7 @@ from bifrostlib.datahandling import Category
 from typing import Dict
 import os
 import shutil
+import re
 
 def run_cmd(command, log):
     with open(log.out_file, "a+") as out, open(log.err_file, "a+") as err:
@@ -30,28 +31,26 @@ def rule__chewbbaca(input: object, output: object, params: object, log: object) 
         sample_name = sample['name']
         # Variables being used
         species_detection = sample.get_category("species_detection")
+        detected_species = species_detection['summary']['detected_species']
         genome = input.genome
-        print(genome)
         schemes = params.chewbbaca_schemes
-        training_files = params.chewbbaca_training_files # we will remove this, since by default it uses the one in scheme folder
-        #schemes = "/local_files/Listeria_monocytogenes_Pasteur_cgMLST_2021-05-31T15"
-        #training_files = "/local_files/Listeria_monocytogenes.trn"
-        # to do:
-        # check if these paths exist, if not make our own scheme and load it
-        # need to make sure these folders are mounted properly etc.
+        species_scheme_folder_matches = [i for i in os.listdir(schemes) if re.match(detected_species.replace(" ", "_") + ".*", i)]
+        species_scheme_folder = [i for i in species_scheme_folder_matches if os.path.isdir(os.path.join(schemes, i))][0]
+        species_scheme_path = os.path.join(schemes, species_scheme_folder)
+        print(species_scheme_path)
+        # copy the contigs file to the output folder, chewbbaca uses a folder containing fastas as input
         output_dir = output.chewbbaca_results
         os.mkdir(output_dir)
-        # copy the contigs file to the output folder, chewbbaca uses a folder containing fastas as input
+        #print(output_dir, species_scheme_folder, genome)
+        #output_dir = f"{component['name']}"
         shutil.copy(genome, os.path.join(output_dir, sample_name + ".fasta"))
-        if species_detection != None:
-            species = species_detection["summary"].get("species", None) # currently, provided species will take priority over detected species
-        else:
-            species = None # in case the category doesnt exist
-        #if species not in component["options"]["chewbbaca_current_species"]:
-            #species = "Other"
-        cmd = f"chewBBACA.py AlleleCall -i {output_dir} -g {schemes} -o {output_dir} --cpu 4"
+        print(os.listdir(output_dir))
+        print(output.chewbbaca_done)
+        cmd = f"yes no | chewBBACA.py AlleleCall -i {output_dir} -g {species_scheme_path} -o {output_dir} --cpu 4"
         print(cmd)
         run_cmd(cmd, log)
+        with open(output.chewbbaca_done, "w") as fh:
+                fh.write("")
 
 
     except Exception:

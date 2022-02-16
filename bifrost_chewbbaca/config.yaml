@@ -41,8 +41,7 @@ options:
 resources:
   #schemes: "/bifrost/components/bifrost_cge_resfinder/resources/resfinder_db"
   #training_files: "/bifrost/components/bifrost_cge_resfinder/resources/pointfinder_db"
-  schemes: "/local_files/Listeria_monocytogenes_Pasteur_cgMLST_2021-05-31T15"
-  training_files: "/local_files/Listeria_monocytogenes.trn"
+  schemes: "/bifrost_chewbbaca_schemes"
 #---------------------------------------------------------------------------------------------------
 
 #-Requirements to run component---------------------------------------------------------------------
@@ -52,6 +51,12 @@ requirements:
       paired_reads:
         summary:
           data:
+      contigs:
+        summary:
+          data:
+      species_detection:
+        summary:
+          detected_species:
 #---------------------------------------------------------------------------------------------------
 
 #-DB Value changes (excluding component output)-----------------------------------------------------
@@ -66,7 +71,7 @@ db_values_changes:
           date:  # ObjectId
     report:
       resistance:
-        title: "Resistance"
+        title: "chewbbaca"
         info: *name
         columns: 
           - {id: "phenotype", name: "phenotype"}

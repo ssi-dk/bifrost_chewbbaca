@@ -12,6 +12,7 @@ from bifrostlib.datahandling import SampleComponentReference
 from bifrostlib.datahandling import SampleComponent
 os.umask(0o2)
 
+
 try:
     sample_ref = SampleReference(_id=config.get('sample_id', None), name=config.get('sample_name', None))
     sample:Sample = Sample.load(sample_ref) # schema 2.1
@@ -27,8 +28,10 @@ try:
         samplecomponent:SampleComponent = SampleComponent(sample_reference=sample.to_reference(), component_reference=component.to_reference()) # schema 2.1
     common.set_status_and_save(sample, samplecomponent, "Running")
 
-    assemblatron_samplecomponent_field = [i for i in sample['components'] if i['name'].startswith('assemblatron')][0]
-    assemblatron_reference = ComponentReference(name=assemblatron_samplecomponent_field['name'])
+    assemblatron_samplecomponent_field = [i for i in sample['components'] if i['name'].startswith('assemblatron')] 
+    # there may be multiple components associated with the sample, so we select the most recent one.
+    most_recent_assemblatron_name = sorted([i['name'] for i in assemblatron_samplecomponent_field], reverse=True)[0]
+    assemblatron_reference = ComponentReference(name=most_recent_assemblatron_name)
     assemblatron_samplecomponent_ref = SampleComponentReference(name=SampleComponentReference.name_generator(sample.to_reference(), assemblatron_reference))
     assemblatron_samplecomponent = SampleComponent.load(assemblatron_samplecomponent_ref)
     assemblatron_path = assemblatron_samplecomponent['path']
@@ -94,13 +97,13 @@ rule run_chewbbaca_on_genome:
         f"{component['name']}/benchmarks/{rule_name}.benchmark"
     input:
         rules.check_requirements.output.check_file,
-        genome = assemblatron_path
+        genome = os.path.join(assemblatron_path, "contigs.fasta")
     output:
-        chewbbaca_results = directory(f"{component['name']}/chewbbaca_results")
+        chewbbaca_results = directory(f"{component['name']}/chewbbaca_results"),
+        chewbbaca_done = f"{component['name']}/chewbbaca_done"
     params:
         samplecomponent_ref_json = samplecomponent.to_reference().json,
-        chewbbaca_schemes = component['resources']['schemes'],
-        chewbbaca_training_files = component['resources']['training_files']
+        chewbbaca_schemes = component['resources']['schemes']
     #shell:
         #"chewBBACA.py AlleleCall -i /srv/data/FBI/SOFI/EQA/listeria/ -g /srv/data/FBI/SOFI/chewieTest/Listeria_monocytogenes_Pasteur_cgMLST_2021-05-31T15/ --ptf /srv/data/FBI/SOFI/chewieTest/Listeria_monocytogenes.trn -o chewBBACA_output --cpu 5"
         #"run_resfinder.py -db_res {params.resfinder_db} -db_point {params.pointfinder_db} -acq -k kma -ifq {input.reads[0]} {input.reads[1]} -o {output.resfinder_results}"

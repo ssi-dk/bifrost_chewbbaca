@@ -27,20 +27,20 @@ install:
 
 #-Options-------------------------------------------------------------------------------------------
 options:
-  chewbbaca_current_species: {Campylobacter jejuni,
-                              Campylobacter coli,
-                              Yersinia,
-                              Escherichia coli,
-                              Shigella,
-                              Klebsiella,
-                              Listeria monocytogenes,
-                              Salmonella}
+  chewbbaca_species_mapping: 
+    Campylobacter jejuni: "Campylobacter"
+    Campylobacter coli: "Campylobacter"
+    Escherichia coli: "Escherichia coli"
+    Shigella sonnei: "Escherichia coli"
+    Shigella flex: "Escherichia coli"
+    Salmonella enterica: "Salmonella enterica"
+    Yersinia enterocolitica: "Yersinia"
+    Listeria monocytogenes: "Listeria"
+
 #---------------------------------------------------------------------------------------------------
 
 #-Required resource files---------------------------------------------------------------------------
 resources:
-  #schemes: "/bifrost/components/bifrost_cge_resfinder/resources/resfinder_db"
-  #training_files: "/bifrost/components/bifrost_cge_resfinder/resources/pointfinder_db"
   schemes: "/bifrost_chewbbaca_schemes"
 #---------------------------------------------------------------------------------------------------
 
@@ -74,14 +74,12 @@ db_values_changes:
         title: "chewbbaca"
         info: *name
         columns: 
-          - {id: "phenotype", name: "phenotype"}
-          - {id: "seq_regions", name: "seq_regions"}
-          - {id: "amr_classes", name: "amr_classes"}
+          - {id: "alleles", name: "alleles"}
         data: []
   sample_component:
     summary:
-      phenotypes: 
+      sequence_type: 
     results:
-      cge_resfinder/resfinder_results/std_format.json: {}
+      chewbbaca/chewbbaca_results/results_<date><time>/results_alleles.tsv: {}
 
 #---------------------------------------------------------------------------------------------------

@@ -1,0 +1,38 @@
+name: run_tests
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - test
+jobs:
+  deploy:
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.8'
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install setuptools wheel twine
+    - name: Build docker image
+      run: |
+        docker build --build-arg BUILD_ENV=test -t ${{ github.event.repository.name }} .
+    - name: Get_tests_data
+      run: >
+          git clone https://github.com/ssi-dk/bifrost_test_data.git;
+          cd bifrost_test_data/samples;
+          bash download_S1.sh
+    - name: Run_tests
+      run: >
+          docker run 
+          -w /bifrost/components/${{ github.event.repository.name }}
+          -v /home/runner/work/${{ github.event.repository.name }}/${{ github.event.repository.name }}/bifrost_test_data:/bifrost/test_data
+          --entrypoint "python3"
+          -e BIFROST_DB_KEY=${{ secrets.MONGODB_ATLAS_CONNECTION }}/bifrost_test 
+          ${{ github.event.repository.name }} 
+          -m pytest

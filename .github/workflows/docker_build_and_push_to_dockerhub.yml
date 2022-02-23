@@ -1,0 +1,45 @@
+name: Build and push Docker images to Dockerhub
+on:
+  push:
+    branches:
+      - master
+      - test
+jobs:
+  build-n-publish:
+    name: Publish Docker 🐳 image 📦 to Dockerhub and create 🏷 for repo
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Get repo name
+      id: getreponame
+      run: echo "REPOSITORY_NAME=${GITHUB_REPOSITORY#*/}" >> $GITHUB_ENV
+    - name: Get version info
+      id: getversion
+      run: |
+        echo "CODE_VERSION=$(sed -n 's/^\ \ code:\ \(.*\)/\1/p' $REPOSITORY_NAME/config.yaml)" >> $GITHUB_ENV
+        echo "RESOURCE_VERSION=$(sed -n 's/^\ \ resource:\ "*\([a-zA-Z0-9\-\_]*\)"*/\1/p' $REPOSITORY_NAME/config.yaml)" >> $GITHUB_ENV
+    - name: Build and push Docker images (to test)
+      if: github.ref == 'refs/heads/test'
+      uses: docker/build-push-action@v1.1.0
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }} # optional
+        password: ${{ secrets.DOCKER_PASSWORD }} # optional
+        repository: ssidk/${{ env.REPOSITORY_NAME }}
+        tags: test
+        build_args: BUILD_ENV=test,CODE_VERSION=${{ env.CODE_VERSION }},RESOURCE_VERSION=${{ env.RESOURCE_VERSION }}
+    - name: Build and push Docker images (to latest)
+      id: buildmaster
+      if: github.ref == 'refs/heads/master'
+      uses: docker/build-push-action@v1.1.0
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }} # optional
+        password: ${{ secrets.DOCKER_PASSWORD }} # optional
+        repository: ssidk/${{ env.REPOSITORY_NAME }}
+        tags: latest,${{ env.CODE_VERSION }}__${{ env.RESOURCE_VERSION }}
+        build_args: CODE_VERSION=${{ env.CODE_VERSION }},RESOURCE_VERSION=${{ env.RESOURCE_VERSION }}
+    - name: Tag commit
+      uses: tvdias/github-tagger@v0.0.1
+      if: github.ref == 'refs/heads/master'
+      with:
+        repo-token: "${{ secrets.GITHUB_TOKEN }}"
+        tag: v${{ env.CODE_VERSION }}__${{ env.RESOURCE_VERSION }}

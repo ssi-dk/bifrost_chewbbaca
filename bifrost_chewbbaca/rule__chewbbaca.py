@@ -12,7 +12,8 @@ import re
 
 def run_cmd(command, log):
     with open(log.out_file, "a+") as out, open(log.err_file, "a+") as err:
-        command_log_out, command_log_err = subprocess.Popen(command, shell=True).communicate()
+        process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf-8')
+        command_log_out, command_log_err = process.communicate()
         if command_log_err == None:
             command_log_err = ""
         if command_log_out == None:
@@ -44,14 +45,17 @@ def rule__chewbbaca(input: object, output: object, params: object, log: object) 
             species_scheme_path = os.path.join(schemes, species_scheme_folder)
             print(species_scheme_path)
             # copy the contigs file to the output folder, chewbbaca uses a folder containing fastas as input
-            output_dir = output.chewbbaca_results
+            output_dir = f"{component['name']}/chewbbaca_results"
             os.mkdir(output_dir)
             shutil.copy(genome, os.path.join(output_dir, sample_name + ".fasta"))
             cmd = f"yes no | chewBBACA.py AlleleCall -i {output_dir} -g {species_scheme_path} -o {output_dir} --cpu 4"
             print(cmd)
             run_cmd(cmd, log)
-            with open(output.chewbbaca_done, "w") as fh:
-                    fh.write("")
+            print(os.listdir(output_dir))
+            chewbbaca_actual_output = [i for i in os.listdir(output_dir) if re.match("results_.*", i)]
+            if len(chewbbaca_actual_output) > 0:
+                with open(output.chewbbaca_done, "w") as fh:
+                        fh.write("")
 
 
     except Exception:

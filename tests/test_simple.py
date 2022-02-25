@@ -21,7 +21,7 @@ def test_connection():
     assert "TEST" in os.environ['BIFROST_DB_KEY'].upper()  # A very basic piece of protection ensuring the word test is in the DB
 
 class TestBifrostchewBBACA:
-    component_name = "chewbbaca__v0_0_1"
+    component_name = "chewbbaca__v0_0_2"
     component_name = component_name + "__placeholder"
     current_dir = os.getcwd()
     test_dir = "/bifrost/test_data/output/test__chewbbaca/"

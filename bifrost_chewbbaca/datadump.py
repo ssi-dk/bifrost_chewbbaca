@@ -8,7 +8,7 @@ import os
 import json
 import re
 
-def extract_cgmlst(chewbbaca: Category, results: Dict, component_name: str) -> None:
+def extract_cgmlst(cgmlst: Category, results: Dict, component_name: str) -> None:
     output_folder = os.path.join(component_name, 'chewbbaca_results')
     # chewbacca output gets thrown into a folder called results_<yearmonthday>someothertext
     chewbbaca_output_folder = [i for i in os.listdir(output_folder) if re.match("results_[0-9]{6}.*", i)][0]
@@ -22,35 +22,35 @@ def extract_cgmlst(chewbbaca: Category, results: Dict, component_name: str) -> N
         allele_values = lines[1].split()[1:]
         allele_dict = {allele_names[i]:allele_values[i] for i in range(len(allele_names))}
     results[file_key] = allele_dict
-    #chewbbaca['summary']['alleles'] = allele_dict
-    chewbbaca['report']['data'].append({"alleles":allele_dict})
+    #cgmlst['summary']['alleles'] = allele_dict
+    cgmlst['report']['chewbbaca']['data'].append({"alleles":allele_dict})
 
 
 def datadump(samplecomponent_ref_json: Dict):
     samplecomponent_ref = SampleComponentReference(value=samplecomponent_ref_json)
     samplecomponent = SampleComponent.load(samplecomponent_ref)
     sample = Sample.load(samplecomponent.sample)
-    #chewbbaca = samplecomponent.get_category("chewbbaca")
-    #print(resistance) # it's the appending that's duplicated because resistance is not none
-    #if resistance is None:
-    chewbbaca = Category(value={
-            "name": "chewbbaca",
-            "component": {"id": samplecomponent["component"]["_id"], "name": samplecomponent["component"]["name"]},
-            "summary": {"sequence_type":None},
-            "report": {"data":[]}
-        }
-    )
-    extract_cgmlst(chewbbaca, samplecomponent["results"], samplecomponent["component"]["name"])
-    samplecomponent.set_category(chewbbaca)
-    sample_category = sample.get_category("chewbbaca")
+    cgmlst = samplecomponent.get_category("cgmlst")
+    #print(cgmlst) # it's the appending that's duplicated because resistance is not none
+    if cgmlst is None:
+        cgmlst = Category(value={
+                "name": "cgmlst",
+                "component": {"id": samplecomponent["component"]["_id"], "name": samplecomponent["component"]["name"]},
+                "summary": {"sequence_type": None},
+                "report": {"chewbbaca": {"data": []}}
+            }
+        )
+    extract_cgmlst(cgmlst, samplecomponent["results"], samplecomponent["component"]["name"])
+    samplecomponent.set_category(cgmlst)
+    sample_category = sample.get_category("cgmlst")
     if sample_category == None:
-        sample.set_category(chewbbaca)
+        sample.set_category(cgmlst)
     else:
-        current_category_version = extract_digits_from_component_version(chewbbaca['component']['name'])
+        current_category_version = extract_digits_from_component_version(cgmlst['component']['name'])
         sample_category_version = extract_digits_from_component_version(sample_category['component']['name'])
         print(current_category_version, sample_category_version)
         if current_category_version >= sample_category_version:
-            sample.set_category(chewbbaca)
+            sample.set_category(cgmlst)
     common.set_status_and_save(sample, samplecomponent, "Success")
     
     with open(os.path.join(samplecomponent["component"]["name"], "datadump_complete"), "w+") as fh:
@@ -62,6 +62,8 @@ def extract_digits_from_component_version(component_str):
     version_group = re.match(version_re, component_str).groups()[0]
     version_digits = int("".join([i for i in version_group if i.isdigit()]))
     return version_digits
+
+
 datadump(
     snakemake.params.samplecomponent_ref_json,
 )

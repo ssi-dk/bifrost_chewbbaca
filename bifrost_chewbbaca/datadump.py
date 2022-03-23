@@ -22,7 +22,7 @@ def extract_cgmlst(cgmlst: Category, results: Dict, component_name: str) -> None
         allele_values = lines[1].split()[1:]
         allele_dict = {allele_names[i]:allele_values[i] for i in range(len(allele_names))}
     results[file_key] = allele_dict
-    #chewbbaca['summary']['alleles'] = allele_dict
+    #cgmlst['summary']['alleles'] = allele_dict
     cgmlst['report']['chewbbaca']['data'].append({"alleles":allele_dict})
 
 
@@ -40,6 +40,7 @@ def datadump(samplecomponent_ref_json: Dict):
             "report": {"chewbbaca":{"data":[]}}
         }
     )
+
     extract_cgmlst(cgmlst, samplecomponent["results"], samplecomponent["component"]["name"])
     samplecomponent.set_category(cgmlst)
     sample_category = sample.get_category("cgmlst")
@@ -62,6 +63,8 @@ def extract_digits_from_component_version(component_str):
     version_group = re.match(version_re, component_str).groups()[0]
     version_digits = int("".join([i for i in version_group if i.isdigit()]))
     return version_digits
+
+
 datadump(
     snakemake.params.samplecomponent_ref_json,
 )

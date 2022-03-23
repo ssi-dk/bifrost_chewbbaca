@@ -12,7 +12,7 @@ def extract_cgmlst(cgmlst: Category, results: Dict, component_name: str) -> None
     output_folder = os.path.join(component_name, 'chewbbaca_results')
     # chewbacca output gets thrown into a folder called results_<yearmonthday>someothertext
     chewbbaca_output_folder = [i for i in os.listdir(output_folder) if re.match("results_[0-9]{6}.*", i)][0]
-    file_name = os.path.join("chewbbaca_results", chewbbaca_output_folder, "results_alleles.tsv")
+    file_name = os.path.join("  _results", chewbbaca_output_folder, "results_alleles.tsv")
     file_key = common.json_key_cleaner(file_name)
     file_path = os.path.join(component_name, file_name)
     with open(file_path) as input:
@@ -30,16 +30,17 @@ def datadump(samplecomponent_ref_json: Dict):
     samplecomponent_ref = SampleComponentReference(value=samplecomponent_ref_json)
     samplecomponent = SampleComponent.load(samplecomponent_ref)
     sample = Sample.load(samplecomponent.sample)
-    cgmlst = samplecomponent.get_category("cgmlst")
-    #print(cgmlst) # it's the appending that's duplicated because resistance is not none
-    if cgmlst is None:
-        cgmlst = Category(value={
-                "name": "cgmlst",
-                "component": {"id": samplecomponent["component"]["_id"], "name": samplecomponent["component"]["name"]},
-                "summary": {"sequence_type": None},
-                "report": {"chewbbaca": {"data": []}}
-            }
-        )
+    #chewbbaca = samplecomponent.get_category("chewbbaca")
+    #print(resistance) # it's the appending that's duplicated because resistance is not none
+    #if resistance is None:
+    cgmlst = Category(value={
+            "name": "cgmlst",
+            "component": {"id": samplecomponent["component"]["_id"], "name": samplecomponent["component"]["name"]},
+            "summary": {"sequence_type":None},
+            "report": {"chewbbaca":{"data":[]}}
+        }
+    )
+
     extract_cgmlst(cgmlst, samplecomponent["results"], samplecomponent["component"]["name"])
     samplecomponent.set_category(cgmlst)
     sample_category = sample.get_category("cgmlst")

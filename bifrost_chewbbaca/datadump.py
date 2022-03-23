@@ -8,11 +8,11 @@ import os
 import json
 import re
 
-def extract_cgmlst(chewbbaca: Category, results: Dict, component_name: str) -> None:
+def extract_cgmlst(cgmlst: Category, results: Dict, component_name: str) -> None:
     output_folder = os.path.join(component_name, 'chewbbaca_results')
     # chewbacca output gets thrown into a folder called results_<yearmonthday>someothertext
     chewbbaca_output_folder = [i for i in os.listdir(output_folder) if re.match("results_[0-9]{6}.*", i)][0]
-    file_name = os.path.join("chewbbaca_results", chewbbaca_output_folder, "results_alleles.tsv")
+    file_name = os.path.join("  _results", chewbbaca_output_folder, "results_alleles.tsv")
     file_key = common.json_key_cleaner(file_name)
     file_path = os.path.join(component_name, file_name)
     with open(file_path) as input:
@@ -23,7 +23,7 @@ def extract_cgmlst(chewbbaca: Category, results: Dict, component_name: str) -> N
         allele_dict = {allele_names[i]:allele_values[i] for i in range(len(allele_names))}
     results[file_key] = allele_dict
     #chewbbaca['summary']['alleles'] = allele_dict
-    chewbbaca['report']['data'].append({"alleles":allele_dict})
+    cgmlst['report']['chewbbaca']['data'].append({"alleles":allele_dict})
 
 
 def datadump(samplecomponent_ref_json: Dict):
@@ -33,24 +33,24 @@ def datadump(samplecomponent_ref_json: Dict):
     #chewbbaca = samplecomponent.get_category("chewbbaca")
     #print(resistance) # it's the appending that's duplicated because resistance is not none
     #if resistance is None:
-    chewbbaca = Category(value={
-            "name": "chewbbaca",
+    cgmlst = Category(value={
+            "name": "cgmlst",
             "component": {"id": samplecomponent["component"]["_id"], "name": samplecomponent["component"]["name"]},
             "summary": {"sequence_type":None},
-            "report": {"data":[]}
+            "report": {"chewbbaca":{"data":[]}}
         }
     )
-    extract_cgmlst(chewbbaca, samplecomponent["results"], samplecomponent["component"]["name"])
-    samplecomponent.set_category(chewbbaca)
-    sample_category = sample.get_category("chewbbaca")
+    extract_cgmlst(cgmlst, samplecomponent["results"], samplecomponent["component"]["name"])
+    samplecomponent.set_category(cgmlst)
+    sample_category = sample.get_category("cgmlst")
     if sample_category == None:
-        sample.set_category(chewbbaca)
+        sample.set_category(cgmlst)
     else:
-        current_category_version = extract_digits_from_component_version(chewbbaca['component']['name'])
+        current_category_version = extract_digits_from_component_version(cgmlst['component']['name'])
         sample_category_version = extract_digits_from_component_version(sample_category['component']['name'])
         print(current_category_version, sample_category_version)
         if current_category_version >= sample_category_version:
-            sample.set_category(chewbbaca)
+            sample.set_category(cgmlst)
     common.set_status_and_save(sample, samplecomponent, "Success")
     
     with open(os.path.join(samplecomponent["component"]["name"], "datadump_complete"), "w+") as fh:

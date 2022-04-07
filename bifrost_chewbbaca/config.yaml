@@ -16,7 +16,7 @@ details:
 #---------------------------------------------------------------------------------------------------
 
 #-Category info-------------------------------------------------------------------------------------
-category: [chewbbaca]
+category: [cgmlst]
 #---------------------------------------------------------------------------------------------------
 
 #-Install-------------------------------------------------------------------------------------------
@@ -41,7 +41,7 @@ options:
 
 #-Required resource files---------------------------------------------------------------------------
 resources:
-  schemes: "/bifrost_chewbbaca_schemes"
+  schemes: "/bifrost/components/bifrost_chewbbaca/resources"
 #---------------------------------------------------------------------------------------------------
 
 #-Requirements to run component---------------------------------------------------------------------
@@ -64,14 +64,14 @@ db_values_changes:
   files: []
   sample:
     categories:
-      resistance:
+      cgmlst:
         summary:  # see sample_component summary
         component:
           _id: 
           date:  # ObjectId
     report:
-      resistance:
-        title: "chewbbaca"
+      cgmlst:
+        title: "cgmlst"
         info: *name
         columns: 
           - {id: "alleles", name: "alleles"}

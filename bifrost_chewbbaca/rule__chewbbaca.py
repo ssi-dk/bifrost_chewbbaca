@@ -40,10 +40,10 @@ def rule__chewbbaca(input: object, output: object, params: object, log: object) 
             species = component['options']['chewbbaca_species_mapping'][detected_species]
             genome = input.genome
             schemes = params.chewbbaca_schemes
+            print(schemes)
             species_scheme_folder_matches = [i for i in os.listdir(schemes) if re.match(species.replace(" ", "_") + ".*", i)]
             species_scheme_folder = [i for i in species_scheme_folder_matches if os.path.isdir(os.path.join(schemes, i))][0]
             species_scheme_path = os.path.join(schemes, species_scheme_folder)
-            print(species_scheme_path)
             # copy the contigs file to the output folder, chewbbaca uses a folder containing fastas as input
             output_dir = f"{component['name']}/chewbbaca_results"
             os.mkdir(output_dir)

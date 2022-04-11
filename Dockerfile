@@ -87,11 +87,11 @@ RUN \
     chewBBACA.py PrepExternalSchema -i resources/Listeria_cgMLST/ -o resources/Listeria_cgMLST_prepped/ --ptf /opt/conda/lib/python3.9/site-packages/CHEWBBACA/prodigal_training_files/Listeria_monocytogenes.trn --cpu 4; \
     rm -r resources/Listeria_cgMLST; \
     chewBBACA.py PrepExternalSchema -i resources/Salmonella_cgMLSTv2/ -o resources/Salmonella_cgMLSTv2_prepped/ --ptf /opt/conda/lib/python3.9/site-packages/CHEWBBACA/prodigal_training_files/Salmonella_enterica.trn --cpu 4; \
-    rm -r resources/Listeria_cgMLST; \
+    rm -r resources/Salmonella_cgMLSTv2; \
     chewBBACA.py PrepExternalSchema -i resources/Yersinia_cgMLSTv1/ -o resources/Yersinia_cgMLSTv1_prepped/ --ptf /opt/conda/lib/python3.9/site-packages/CHEWBBACA/prodigal_training_files/Yersinia_enterocolitica.trn --cpu 4; \
-    rm -r resources/Listeria_cgMLST; \
+    rm -r resources/Yersinia_cgMLSTv1; \
     chewBBACA.py PrepExternalSchema -i resources/Campylobacter_cgMLST/ -o resources/Campylobacter_cgMLST_prepped/ --ptf /opt/conda/lib/python3.9/site-packages/CHEWBBACA/prodigal_training_files/Campylobacter_jejuni.trn --cpu 4; \
-    rm -r resources/Listeria_cgMLST; \
+    rm -r resources/Campylobacter_cgMLST; \
     chewBBACA.py PrepExternalSchema -i resources/Escherichia_cgMLSTv1/ -o resources/Escherichia_cgMLSTv1_prepped/ --ptf /opt/conda/lib/python3.9/site-packages/CHEWBBACA/prodigal_training_files/Escherichia_coli.trn --cpu 4; \
     rm -r resources/Escherichia_cgMLSTv1;
 #    conda install python=3.6.5; \

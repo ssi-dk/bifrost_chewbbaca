@@ -41,7 +41,7 @@ options:
 
 #-Required resource files---------------------------------------------------------------------------
 resources:
-  schemes: "/bifrost_chewbbaca_schemes"
+  schemes: "/bifrost/components/bifrost_chewbbaca/resources"
 #---------------------------------------------------------------------------------------------------
 
 #-Requirements to run component---------------------------------------------------------------------

@@ -32,35 +32,48 @@ def rule__chewbbaca(input: object, output: object, params: object, log: object) 
         print(component['options'])
         sample_name = sample['name']
         # Variables being used
+        resources_dir = component['resources']['schemes']
         species_detection = sample.get_category("species_detection")
         detected_species = species_detection['summary']['detected_species']
-        if detected_species not in component["options"]["chewbbaca_species_mapping"]:
-            run_cmd(f"touch {component['name']}/no_cgmlst_species_DB")
-        else:
-            species = component['options']['chewbbaca_species_mapping'][detected_species]
-            genome = input.genome
-            schemes = params.chewbbaca_schemes
-            print(schemes)
-            species_scheme_folder_matches = [i for i in os.listdir(schemes) if re.match(species.replace(" ", "_") + ".*", i)]
-            species_scheme_folder = [i for i in species_scheme_folder_matches if os.path.isdir(os.path.join(schemes, i))][0]
-            species_scheme_path = os.path.join(schemes, species_scheme_folder)
-            # copy the contigs file to the output folder, chewbbaca uses a folder containing fastas as input
-            output_dir = f"{component['name']}/chewbbaca_results"
-            os.mkdir(output_dir)
-            shutil.copy(genome, os.path.join(output_dir, sample_name + ".fasta"))
-            cmd = f"yes no | chewBBACA.py AlleleCall -i {output_dir} -g {species_scheme_path} -o {output_dir} --cpu 4"
-            print(cmd)
-            run_cmd(cmd, log)
-            print(os.listdir(output_dir))
-            chewbbaca_actual_output = [i for i in os.listdir(output_dir) if re.match("results_.*", i)]
-            if len(chewbbaca_actual_output) > 0:
-                with open(output.chewbbaca_done, "w") as fh:
-                        fh.write("")
+        try:
+            species_name, species_id, schema_id = get_species_id(detected_species, component["options"]["chewbbaca_species_mapping"], resources_dir, log)
+        except KeyError:
+            run_cmd(f"touch {component['name']}/no_cgmlst_species_DB", log)
+        genome = input.genome
+        schemes = params.chewbbaca_schemes
+        print(schemes)
+        # copy the contigs file to the output folder, chewbbaca uses a folder containing fastas as input
+        output_dir = output.chewbbaca_results
+        os.mkdir(output_dir)
+        shutil.copy(genome, os.path.join(output_dir, sample_name + ".fasta"))
+        cmd = f"yes no | chewBBACA.py AlleleCall -i {output_dir} -g {resources_dir}/{species_name}_{species_id}_{schema_id}/* -o {output_dir} --cpu 4"
+        print(cmd)
+        run_cmd(cmd, log)
+        sync_schema(species_name, species_id, schema_id, resources_dir, log)
+        with open(output.chewbbaca_done, "w") as fh:
+                fh.write("")
 
 
     except Exception:
         with open(log.err_file, "w+") as fh:
             fh.write(traceback.format_exc())
+
+def get_species_id(species_name, mapping, schema_dir, log):
+    mapping[species_name]
+    fetch_schema(*mapping[species_name], schema_dir, log)
+    return mapping[species_name]
+
+def fetch_schema(schema_name, species_id, schema_id, schema_dir, log):
+    if not os.path.exists(f"{schema_dir}/{schema_name}_{species_id}_{schema_id}"):
+        cmd = f"chewBBACA.py DownloadSchema -sp {species_id} -sc {schema_id} -o {schema_dir}/{schema_name}_{species_id}_{schema_id}"
+        run_cmd(cmd,log)
+    else:
+        sync_schema(schema_name, species_id, schema_id, schema_dir, log)
+
+def sync_schema(schema_name, species_id, schema_id, schema_dir, log):
+    cmd = f"chewBBACA.py SyncSchema -sc {schema_dir}/{schema_name}_{species_id}_{schema_id}/*"
+    run_cmd(cmd, log)
+
 
 
 rule__chewbbaca(

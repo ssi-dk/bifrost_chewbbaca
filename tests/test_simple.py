@@ -22,19 +22,29 @@ def test_connection():
 
 class TestBifrostchewBBACA:
     component_name = "chewbbaca__v0_0_1"
-    component_name = component_name + "__placeholder"
+    component_name = component_name + "__" ## Removed placeholder, since it doesn't get propagated to the component.
     current_dir = os.getcwd()
     test_dir = "/bifrost/test_data/output/test__chewbbaca/"
     json_entries = [
         {
             "_id": {"$oid": "000000000000000000000001"}, 
-            "name": "S1", 
+            "name": "SRR2094561", 
             "components": [], 
             "categories": {
                 "paired_reads": {
                     "summary": {
-                        "data": ["/bifrost/test_data/samples/S1_R1.fastq.gz",
-                                 "/bifrost/test_data/samples/S1_R2.fastq.gz"]
+                        "data": ["/bifrost/test_data/samples/SRR2094561_1.fastq.gz",
+                                 "/bifrost/test_data/samples/SRR2094561_2.fastq.gz"]
+                    }
+                },
+                "denovo_assembly": {
+                    "summary": {
+                        "data": "/bifrost/test_data/samples/SRR2094561.fasta"
+                    }
+                },
+                "species_detection": {
+                    "summary": {
+                        "detected_species": "Salmonella enterica"
                     }
                 }
             }
@@ -79,7 +89,7 @@ class TestBifrostchewBBACA:
 
         os.mkdir(self.test_dir)
         test_args = [
-            "--sample_name", "S1",
+            "--sample_name", "SRR2094561",
             "--outdir", self.test_dir
         ]
         launcher.main(args=test_args)

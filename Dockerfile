@@ -8,7 +8,7 @@ ARG FORCE_DOWNLOAD=true
 #---------------------------------------------------------------------------------------------------
 # Programs for all environments
 #---------------------------------------------------------------------------------------------------
-FROM continuumio/miniconda3:4.10.3 as build_base
+FROM continuumio/miniconda3:4.12.0 as build_base
 ONBUILD ARG BIFROST_COMPONENT_NAME
 ONBUILD ARG BUILD_ENV
 ONBUILD ARG MAINTAINER
@@ -65,37 +65,21 @@ FROM build_${BUILD_ENV}
 ARG BIFROST_COMPONENT_NAME
 WORKDIR /bifrost/components/${BIFROST_COMPONENT_NAME}
 RUN \
-    # For 'make' needed for kma
     apt-get update &&  apt-get install -y -q --fix-missing \
         build-essential \
         zlib1g-dev \
         libmagic-dev \
         nano \
         less; \
-    conda install -c bioconda blast=2.12.0; \
+    conda install -c bioconda blast=2.9; \
     conda install -c bioconda prodigal=2.6.3; \
-    conda install -c anaconda beautifulsoup4; \
-    pip install -q \
-        python-dateutil==2.8.1 \
-        chewbbaca==2.8.5; \
-    python html_download.py -a https://enterobase.warwick.ac.uk/schemes/Escherichia.cgMLSTv1/ -o resources/Escherichia_cgMLSTv1; \
-    python html_download.py -a https://enterobase.warwick.ac.uk/schemes/Salmonella.cgMLSTv2/ -o resources/Salmonella_cgMLSTv2; \
-    python html_download.py -a https://enterobase.warwick.ac.uk/schemes/Yersinia.cgMLSTv1/ -o resources/Yersinia_cgMLSTv1; \
-    python download_alleles_bigsdb.py --base_url http://rest.pubmlst.org --database pubmlst_campylobacter_seqdef --scheme_id 4 --dir resources/Campylobacter_cgMLST; \
-    python download_alleles_bigsdb.py --base_url https://bigsdb.pasteur.fr/api --database pubmlst_t21listeria_seqdef --scheme_id 3 --dir resources/Listeria_cgMLST; \
-    for dir in resources/*/; do if ls $dir/*.gz 1> /dev/null 2>&1; then gunzip $dir/*.gz; fi; done; \
-    chewBBACA.py PrepExternalSchema -i resources/Listeria_cgMLST/ -o resources/Listeria_cgMLST_prepped/ --ptf /opt/conda/lib/python3.9/site-packages/CHEWBBACA/prodigal_training_files/Listeria_monocytogenes.trn --cpu 4; \
-    rm -r resources/Listeria_cgMLST; \
-    chewBBACA.py PrepExternalSchema -i resources/Salmonella_cgMLSTv2/ -o resources/Salmonella_cgMLSTv2_prepped/ --ptf /opt/conda/lib/python3.9/site-packages/CHEWBBACA/prodigal_training_files/Salmonella_enterica.trn --cpu 4; \
-    rm -r resources/Salmonella_cgMLSTv2; \
-    chewBBACA.py PrepExternalSchema -i resources/Yersinia_cgMLSTv1/ -o resources/Yersinia_cgMLSTv1_prepped/ --ptf /opt/conda/lib/python3.9/site-packages/CHEWBBACA/prodigal_training_files/Yersinia_enterocolitica.trn --cpu 4; \
-    rm -r resources/Yersinia_cgMLSTv1; \
-    chewBBACA.py PrepExternalSchema -i resources/Campylobacter_cgMLST/ -o resources/Campylobacter_cgMLST_prepped/ --ptf /opt/conda/lib/python3.9/site-packages/CHEWBBACA/prodigal_training_files/Campylobacter_jejuni.trn --cpu 4; \
-    rm -r resources/Campylobacter_cgMLST; \
-    chewBBACA.py PrepExternalSchema -i resources/Escherichia_cgMLSTv1/ -o resources/Escherichia_cgMLSTv1_prepped/ --ptf /opt/conda/lib/python3.9/site-packages/CHEWBBACA/prodigal_training_files/Escherichia_coli.trn --cpu 4; \
-    rm -r resources/Escherichia_cgMLSTv1;
-#    conda install python=3.6.5; \
-#    conda install -c bioconda chewbbaca=2.0.16
+    git clone https://github.com/B-UMMI/chewBBACA.git /opt/chewbbaca; \
+    pip install -r /opt/chewbbaca/CHEWBBACA/requirements.txt; \
+    pip install -e file:///opt/chewbbaca;
+    #chewBBACA.py DownloadSchema -sp 4 -sc 1 -o resources/Campylobacter_jejuni_ns;
+    #chewBBACA.py DownloadSchema -sp 5 -sc 1 -o resources/Escherichia_coli_ns; \
+    #chewBBACA.py DownloadSchema -sp 6 -sc 1 -o resources/Listeria_monocytogenes_ns; \
+    #chewBBACA.py DownloadSchema -sp 8 -sc 1 -o resources/Salmonella_enterica_ns;
 
 #- Additional resources (files/DBs): end -----------------------------------------------------------
 

@@ -28,13 +28,7 @@ try:
         samplecomponent:SampleComponent = SampleComponent(sample_reference=sample.to_reference(), component_reference=component.to_reference()) # schema 2.1
     common.set_status_and_save(sample, samplecomponent, "Running")
 
-    assemblatron_samplecomponent_field = [i for i in sample['components'] if i['name'].startswith('assemblatron')] 
-    # there may be multiple components associated with the sample, so we select the most recent one.
-    most_recent_assemblatron_name = sorted([i['name'] for i in assemblatron_samplecomponent_field], reverse=True)[0]
-    assemblatron_reference = ComponentReference(name=most_recent_assemblatron_name)
-    assemblatron_samplecomponent_ref = SampleComponentReference(name=SampleComponentReference.name_generator(sample.to_reference(), assemblatron_reference))
-    assemblatron_samplecomponent = SampleComponent.load(assemblatron_samplecomponent_ref)
-    assemblatron_path = assemblatron_samplecomponent['path']
+    
 except Exception as error:
     print(traceback.format_exc(), file=sys.stderr)
     raise Exception("failed to set sample, component and/or samplecomponent")
@@ -86,6 +80,7 @@ rule check_requirements:
 #- Templated section: end --------------------------------------------------------------------------
 
 #* Dynamic section: start **************************************************************************
+
 rule_name = "run_chewbbaca_on_genome"
 rule run_chewbbaca_on_genome:
     message:
@@ -97,19 +92,15 @@ rule run_chewbbaca_on_genome:
         f"{component['name']}/benchmarks/{rule_name}.benchmark"
     input:
         rules.check_requirements.output.check_file,
-        genome = os.path.join(assemblatron_path, "contigs.fasta")
+        genome = f"{sample['categories']['denovo_assembly']['summary']['data']}"
     output:
         chewbbaca_results = directory(f"{component['name']}/chewbbaca_results"),
         chewbbaca_done = f"{component['name']}/chewbbaca_done"
     params:
         samplecomponent_ref_json = samplecomponent.to_reference().json,
         chewbbaca_schemes = component['resources']['schemes']
-    #shell:
-        #"chewBBACA.py AlleleCall -i /srv/data/FBI/SOFI/EQA/listeria/ -g /srv/data/FBI/SOFI/chewieTest/Listeria_monocytogenes_Pasteur_cgMLST_2021-05-31T15/ --ptf /srv/data/FBI/SOFI/chewieTest/Listeria_monocytogenes.trn -o chewBBACA_output --cpu 5"
-        #"run_resfinder.py -db_res {params.resfinder_db} -db_point {params.pointfinder_db} -acq -k kma -ifq {input.reads[0]} {input.reads[1]} -o {output.resfinder_results}"
     script:
         os.path.join(os.path.dirname(workflow.snakefile), "rule__chewbbaca.py")
-
 
 #* Dynamic section: end ****************************************************************************
 

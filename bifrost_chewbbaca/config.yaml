@@ -1,9 +1,9 @@
 #-Basic info----------------------------------------------------------------------------------------
 display_name: chewbbaca
-name: &name chewbbaca__v0_0_1__
+name: &component_name chewbbaca__v1_0_0__
 version:
   schema: ["v2_1_0"]
-  code: v0_0_1
+  code: v1_0_0
   resource: ""
 #---------------------------------------------------------------------------------------------------
 
@@ -27,15 +27,15 @@ install:
 
 #-Options-------------------------------------------------------------------------------------------
 options:
-  chewbbaca_species_mapping: 
-    Campylobacter jejuni: "Campylobacter"
-    Campylobacter coli: "Campylobacter"
-    Escherichia coli: "Escherichia coli"
-    Shigella sonnei: "Escherichia coli"
-    Shigella flex: "Escherichia coli"
-    Salmonella enterica: "Salmonella enterica"
-    Yersinia enterocolitica: "Yersinia"
-    Listeria monocytogenes: "Listeria"
+  chewbbaca_species_mapping: # (name, speciesID, schemaID)
+    Campylobacter jejuni: ["Campylobacter", 4, 1]
+    Campylobacter coli: ["Campylobacter", 4, 1]
+    Escherichia coli: ["Escherichia_coli", 5, 1]
+    Shigella sonnei: ["Escherichia_coli", 5, 1]
+    Shigella flex: ["Escherichia_coli", 5, 1]
+    Salmonella enterica: ["Salmonella_enterica", 8, 1]
+    Yersinia enterocolitica: ["Yersinia", 7, 1]
+    Listeria monocytogenes: ["Listeria", 6, 1]
 
 #---------------------------------------------------------------------------------------------------
 
@@ -51,7 +51,7 @@ requirements:
       paired_reads:
         summary:
           data:
-      contigs:
+      denovo_assembly:
         summary:
           data:
       species_detection:
@@ -72,7 +72,7 @@ db_values_changes:
     report:
       cgmlst:
         title: "cgmlst"
-        info: *name
+        info: *component_name
         columns: 
           - {id: "alleles", name: "alleles"}
         data: []

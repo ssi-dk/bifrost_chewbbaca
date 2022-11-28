@@ -42,6 +42,7 @@ ONBUILD ARG BIFROST_COMPONENT_NAME
 ONBUILD WORKDIR /bifrost/components/${BIFROST_COMPONENT_NAME}
 ONBUILD COPY ./ ./
 ONBUILD RUN \
+    pip install -r requirements.txt; \
     pip install -e file:///bifrost/components/${BIFROST_COMPONENT_NAME}/
 
 #---------------------------------------------------------------------------------------------------
@@ -85,5 +86,5 @@ RUN \
 
 #- Set up entry point:start ------------------------------------------------------------------------
 ENTRYPOINT ["python3", "-m", "bifrost_chewbbaca"]
-CMD ["python3", "-m", "bifrost_chewbbaca", "--help"]
+CMD ["--help"]
 #- Set up entry point:end --------------------------------------------------------------------------

@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='bifrost_chewbbaca',
-    version='v1_0_0',
+    version='v1_0_1',
     url='https://github.com/ssi-dk/bifrost_chewbbaca',
 
     # Author details

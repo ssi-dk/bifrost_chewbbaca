@@ -1,9 +1,9 @@
 #-Basic info----------------------------------------------------------------------------------------
 display_name: chewbbaca
-name: &component_name chewbbaca__v1_0_1__
+name: &component_name chewbbaca__v1_0_2__
 version:
   schema: ["v2_1_0"]
-  code: v1_0_1
+  code: v1_0_2
   resource: ""
 #---------------------------------------------------------------------------------------------------
 

@@ -48,10 +48,7 @@ resources:
 requirements:
   sample:
     categories:
-      paired_reads:
-        summary:
-          data:
-      denovo_assembly:
+      contigs:
         summary:
           data:
       species_detection:

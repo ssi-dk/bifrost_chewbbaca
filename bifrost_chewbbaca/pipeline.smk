@@ -92,7 +92,7 @@ rule run_chewbbaca_on_genome:
         f"{component['name']}/benchmarks/{rule_name}.benchmark"
     input:
         rules.check_requirements.output.check_file,
-        genome = f"{sample['categories']['denovo_assembly']['summary']['data']}"
+        genome = f"{sample['categories']['contigs']['summary']['data']}"
     output:
         chewbbaca_results = directory(f"{component['name']}/chewbbaca_results"),
         chewbbaca_done = f"{component['name']}/chewbbaca_done"

@@ -31,13 +31,7 @@ class TestBifrostchewBBACA:
             "name": "SRR2094561", 
             "components": [], 
             "categories": {
-                "paired_reads": {
-                    "summary": {
-                        "data": ["/bifrost/test_data/samples/SRR2094561_1.fastq.gz",
-                                 "/bifrost/test_data/samples/SRR2094561_2.fastq.gz"]
-                    }
-                },
-                "denovo_assembly": {
+                "contigs": {
                     "summary": {
                         "data": "/bifrost/test_data/samples/SRR2094561.fasta"
                     }

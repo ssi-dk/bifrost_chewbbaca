@@ -30,27 +30,26 @@ def datadump(samplecomponent_ref_json: Dict):
     samplecomponent_ref = SampleComponentReference(value=samplecomponent_ref_json)
     samplecomponent = SampleComponent.load(samplecomponent_ref)
     sample = Sample.load(samplecomponent.sample)
-    #chewbbaca = samplecomponent.get_category("chewbbaca")
-    #print(resistance) # it's the appending that's duplicated because resistance is not none
-    #if resistance is None:
-    chewbbaca = Category(value={
-            "name": "chewbbaca",
-            "component": {"id": samplecomponent["component"]["_id"], "name": samplecomponent["component"]["name"]},
-            "summary": {"sequence_type":None},
-            "report": {"data":[]}
-        }
-    )
-    extract_cgmlst(chewbbaca, samplecomponent["results"], samplecomponent["component"]["name"])
-    samplecomponent.set_category(chewbbaca)
-    sample_category = sample.get_category("chewbbaca")
+    cgmlst = samplecomponent.get_category("cgmlst")
+    if cgmlst is None:
+        cgmlst = Category(value={
+                "name": "cgmlst",
+                "component": {"id": samplecomponent["component"]["_id"], "name": samplecomponent["component"]["name"]},
+                "summary": {"sequence_type":None},
+                "report": {"data":[]}
+                }
+            )
+    extract_cgmlst(cgmlst, samplecomponent["results"], samplecomponent["component"]["name"])
+    samplecomponent.set_category(cgmlst)
+    sample_category = sample.get_category("cgmlst")
     if sample_category == None:
-        sample.set_category(chewbbaca)
+        sample.set_category(cgmlst)
     else:
-        current_category_version = extract_digits_from_component_version(chewbbaca['component']['name'])
+        current_category_version = extract_digits_from_component_version(cgmlst['component']['name'])
         sample_category_version = extract_digits_from_component_version(sample_category['component']['name'])
         print(current_category_version, sample_category_version)
         if current_category_version >= sample_category_version:
-            sample.set_category(chewbbaca)
+            sample.set_category(cgmlst)
     common.set_status_and_save(sample, samplecomponent, "Success")
     
     with open(os.path.join(samplecomponent["component"]["name"], "datadump_complete"), "w+") as fh:

@@ -11,7 +11,7 @@ from bifrostlib.datahandling import RunReference
 from bifrostlib.datahandling import Run
 from bifrost_chewbbaca import launcher
 import pymongo
-import os
+import os, sys
 import shutil
 
 
@@ -33,7 +33,7 @@ class TestBifrostchewBBACA:
             "categories": {
                 "contigs": {
                     "summary": {
-                        "data": "/bifrost/test_data/samples/SRR2094561.fasta"
+                        "data": "/bifrost/test_data/samples/SAMN03853109.contigs.fa"
                     }
                 },
                 "species_detection": {
@@ -48,19 +48,19 @@ class TestBifrostchewBBACA:
 
     @classmethod
     def setup_class(cls):
-        client = pymongo.MongoClient(os.environ['BIFROST_DB_KEY'])
-        db = client.get_database()
-        cls.clear_all_collections(db)
-        col = db["samples"]
-        col.insert_many(cls.bson_entries)
-        launcher.initialize()
-        os.chdir(cls.current_dir)
+        with pymongo.MongoClient(os.environ['BIFROST_DB_KEY']) as client:
+            db = client.get_database()
+            cls.clear_all_collections(db)
+            col = db["samples"]
+            col.insert_many(cls.bson_entries)
+            launcher.initialize()
+            os.chdir(cls.current_dir)
 
     @classmethod
     def teardown_class(cls):
-        client = pymongo.MongoClient(os.environ['BIFROST_DB_KEY'])
-        db = client.get_database()
-        cls.clear_all_collections(db)
+        with pymongo.MongoClient(os.environ['BIFROST_DB_KEY']) as client:
+            db = client.get_database()
+            cls.clear_all_collections(db)
 
     @staticmethod
     def clear_all_collections(db):
@@ -91,4 +91,10 @@ class TestBifrostchewBBACA:
         shutil.rmtree(self.test_dir)
         assert not os.path.isdir(f"{self.test_dir}/{self.component_name}")
 
+    def test_db_output(self):
+        with pymongo.MongoClient(os.environ['BIFROST_DB_KEY']) as client:
+            db = client.get_database()
+            samples = db['samples']
+            sampledata = list(samples.find({}))
+            assert len(sampledata) == 1
 

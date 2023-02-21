@@ -42,6 +42,7 @@ options:
 #-Required resource files---------------------------------------------------------------------------
 resources:
   schemes: "/bifrost/components/bifrost_chewbbaca/resources"
+  genelists: "/bifrost/components/bifrost_chewbbaca/resources/genelists"
 #---------------------------------------------------------------------------------------------------
 
 #-Requirements to run component---------------------------------------------------------------------

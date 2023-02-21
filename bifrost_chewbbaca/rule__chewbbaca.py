@@ -9,6 +9,7 @@ from typing import Dict
 import os
 import shutil
 import re
+from pathlib import Path
 
 def run_cmd(command, log):
     with open(log.out_file, "a+") as out, open(log.err_file, "a+") as err:
@@ -41,13 +42,12 @@ def rule__chewbbaca(input: object, output: object, params: object, log: object) 
             run_cmd(f"touch {component['name']}/no_cgmlst_species_DB", log)
         genome = input.genome
         schemes = params.chewbbaca_schemes
-        print(schemes)
+        gl_arg = get_genelist(component['resources']['genelists'],species_id, schema_id)
         # copy the contigs file to the output folder, chewbbaca uses a folder containing fastas as input
         output_dir = output.chewbbaca_results
         os.mkdir(output_dir)
         shutil.copy(genome, os.path.join(output_dir, sample_name + ".fasta"))
-        cmd = f"yes no | chewBBACA.py AlleleCall -i {output_dir} -g {resources_dir}/{species_name}_{species_id}_{schema_id}/* -o {output_dir} --cpu 4"
-        print(cmd)
+        cmd = f"yes no | chewBBACA.py AlleleCall -i {output_dir} -g {resources_dir}/{species_name}_{species_id}_{schema_id}/* -o {output_dir} {gl_arg} --cpu 4"
         run_cmd(cmd, log)
         sync_schema(species_name, species_id, schema_id, resources_dir, log)
         with open(output.chewbbaca_done, "w") as fh:
@@ -57,6 +57,15 @@ def rule__chewbbaca(input: object, output: object, params: object, log: object) 
     except Exception:
         with open(log.err_file, "w+") as fh:
             fh.write(traceback.format_exc())
+
+
+def get_genelist(dir, species_id, schema_id):
+    ## Returns a genelist option for the chewbbaca command or an empty string if no such list exists.
+    genelist = Path(dir, f"{species_id}_{schema_id}.list")
+    if genelist.exists():
+        return f"-gl {str(genelist)}"
+    else:
+        return ""
 
 def get_species_id(species_name, mapping, schema_dir, log):
     mapping[species_name]

@@ -8,6 +8,9 @@ import os
 import json
 import re
 
+def call_percent(calls):
+    return round(len([x for x in calls if x.is_integer() or x.startswith('INF')])/len(calls)*100,2)
+
 def extract_cgmlst(chewbbaca: Category, results: Dict, component_name: str) -> None:
     output_folder = os.path.join(component_name, 'chewbbaca_results')
     # chewbacca output gets thrown into a folder called results_<yearmonthday>someothertext
@@ -21,8 +24,8 @@ def extract_cgmlst(chewbbaca: Category, results: Dict, component_name: str) -> N
         allele_names = lines[0].split()[1:]
         allele_values = lines[1].split()[1:]
         allele_dict = {allele_names[i]:allele_values[i] for i in range(len(allele_names))}
+        chewbbaca['summary']['call_percent'] = call_percent(allele_values)
     results[file_key] = allele_dict
-    #chewbbaca['summary']['alleles'] = allele_dict
     chewbbaca['report']['data'].append({"alleles":allele_dict})
 
 
@@ -35,7 +38,7 @@ def datadump(samplecomponent_ref_json: Dict):
         cgmlst = Category(value={
                 "name": "cgmlst",
                 "component": {"id": samplecomponent["component"]["_id"], "name": samplecomponent["component"]["name"]},
-                "summary": {"sequence_type":None},
+                "summary": {"sequence_type":None, "call_percent": None},
                 "report": {"data":[]}
                 }
             )

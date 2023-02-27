@@ -60,7 +60,7 @@ class TestBifrostchewBBACA:
     def teardown_class(cls):
         with pymongo.MongoClient(os.environ['BIFROST_DB_KEY']) as client:
             db = client.get_database()
-            cls.clear_all_collections(db)
+            #cls.clear_all_collections(db)
 
     @staticmethod
     def clear_all_collections(db):
@@ -95,6 +95,6 @@ class TestBifrostchewBBACA:
         with pymongo.MongoClient(os.environ['BIFROST_DB_KEY']) as client:
             db = client.get_database()
             samples = db['samples']
-            sampledata = list(samples.find({}))
-            assert len(sampledata) == 1
-
+            sample_data = next(samples.find({}))
+            assert len(sample_data['categories']['cgmlst']['report']['loci']) == 2807
+            assert len(sample_data['categories']['cgmlst']['report']['alleles']) == 2807

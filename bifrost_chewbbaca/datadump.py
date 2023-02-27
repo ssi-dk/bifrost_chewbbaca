@@ -7,26 +7,27 @@ from typing import Dict
 import os
 import json
 import re
+from pathlib import Path
 
 def call_percent(calls):
-    return round(len([x for x in calls if x.is_integer() or x.startswith('INF')])/len(calls)*100,2)
+    return round(len([x for x in calls if x.isdigit() or x.startswith('INF')])/len(calls)*100,2)
 
-def extract_cgmlst(chewbbaca: Category, results: Dict, component_name: str) -> None:
-    output_folder = os.path.join(component_name, 'chewbbaca_results')
+def extract_cgmlst(cgmlst: Category, results: Dict, component_name: str) -> None:
+    output_folder = Path(component_name, 'chewbbaca_results', 'output')
     # chewbacca output gets thrown into a folder called results_<yearmonthday>someothertext
-    chewbbaca_output_folder = [i for i in os.listdir(output_folder) if re.match("results_[0-9]{6}.*", i)][0]
-    file_name = os.path.join("chewbbaca_results", chewbbaca_output_folder, "results_alleles.tsv")
-    file_key = common.json_key_cleaner(file_name)
-    file_path = os.path.join(component_name, file_name)
-    with open(file_path) as input:
+    #chewbbaca_output_folder = [i for i in os.listdir(output_folder) if re.match("results_[0-9]{6}.*", i)][0]
+    file_name = output_folder/ "results_alleles.tsv"
+    file_key = common.json_key_cleaner(str(file_name))
+    with open(file_name) as input:
         lines = input.readlines()
         lines = [i.strip() for i in lines]
-        allele_names = lines[0].split()[1:]
+        locus_names = lines[0].split()[1:]
         allele_values = lines[1].split()[1:]
-        allele_dict = {allele_names[i]:allele_values[i] for i in range(len(allele_names))}
-        chewbbaca['summary']['call_percent'] = call_percent(allele_values)
+        allele_dict = {locus_names[i]:allele_values[i] for i in range(len(locus_names))}
+        cgmlst['summary']['call_percent'] = call_percent(allele_values)
     results[file_key] = allele_dict
-    chewbbaca['report']['data'].append({"alleles":allele_dict})
+    cgmlst['report']['alleles'] = allele_dict
+    cgmlst['report']['loci'] = locus_names
 
 
 def datadump(samplecomponent_ref_json: Dict):
@@ -38,8 +39,11 @@ def datadump(samplecomponent_ref_json: Dict):
         cgmlst = Category(value={
                 "name": "cgmlst",
                 "component": {"id": samplecomponent["component"]["_id"], "name": samplecomponent["component"]["name"]},
-                "summary": {"sequence_type":None, "call_percent": None},
-                "report": {"data":[]}
+                "summary": {"call_percent": None},
+                "report": {
+                    "loci":[],
+                    "alleles": {},
+                    }
                 }
             )
     extract_cgmlst(cgmlst, samplecomponent["results"], samplecomponent["component"]["name"])

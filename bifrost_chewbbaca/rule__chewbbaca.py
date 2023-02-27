@@ -11,17 +11,16 @@ import shutil
 import re
 from pathlib import Path
 
-def run_cmd(command, log):
+def run_cmd(command, log, input=None):
     with open(log.out_file, "a+") as out, open(log.err_file, "a+") as err:
-        process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf-8')
-        command_log_out, command_log_err = process.communicate()
+        process = subprocess.Popen(command, shell=False, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf-8')
+        command_log_out, command_log_err = process.communicate(input=input)
         if command_log_err == None:
             command_log_err = ""
         if command_log_out == None:
             command_log_out = ""
         out.write(command_log_out)
         err.write(command_log_err)
-
 
 def rule__chewbbaca(input: object, output: object, params: object, log: object) -> None:
     try:
@@ -37,51 +36,77 @@ def rule__chewbbaca(input: object, output: object, params: object, log: object) 
         species_detection = sample.get_category("species_detection")
         detected_species = species_detection['summary']['detected_species']
         try:
-            species_name, species_id, schema_id = get_species_id(detected_species, component["options"]["chewbbaca_species_mapping"], resources_dir, log)
+            schema = Schema(detected_species,params.chewbbaca_schemes, component["options"]["chewbbaca_species_mapping"],component['resources']['genelists'], log)
         except KeyError:
             run_cmd(f"touch {component['name']}/no_cgmlst_species_DB", log)
-        genome = input.genome
-        schemes = params.chewbbaca_schemes
-        gl_arg = get_genelist(component['resources']['genelists'],species_id, schema_id)
-        # copy the contigs file to the output folder, chewbbaca uses a folder containing fastas as input
-        output_dir = output.chewbbaca_results
-        os.mkdir(output_dir)
-        shutil.copy(genome, os.path.join(output_dir, sample_name + ".fasta"))
-        cmd = f"yes no | chewBBACA.py AlleleCall -i {output_dir} -g {resources_dir}/{species_name}_{species_id}_{schema_id}/* -o {output_dir} {gl_arg} --cpu 4"
-        run_cmd(cmd, log)
-        sync_schema(species_name, species_id, schema_id, resources_dir, log)
+        allelecall = ChewbbacaAlleleCall(sample_name, schema, input.genome, output.chewbbaca_results, log)
+        allelecall.run()
+        schema.sync_schema()
         with open(output.chewbbaca_done, "w") as fh:
                 fh.write("")
-
-
     except Exception:
         with open(log.err_file, "w+") as fh:
             fh.write(traceback.format_exc())
+        raise
+
+class ChewbbacaAlleleCall:
+    def __init__(self, sample_name, schema, genome, output, log):
+        self.schema = schema
+        self.sample_name = sample_name
+        self.genome = Path(genome)
+        self.output = Path(output)
+        self.outputdir = self.output/"output"
+        self.log = log
+        self.prepare_run()
+
+    def prepare_run(self):
+        self.inputdir = self.output/"input"
+        self.inputdir.mkdir(parents=True)
+        Path(self.inputdir/(self.sample_name+".fasta")).symlink_to(self.genome)
+
+    def run(self):
+        cmd = ["chewBBACA.py","AlleleCall","-i",self.inputdir,"-g",self.schema.path(),"-o",self.outputdir,"--cpu", "4"]
+        cmd.extend(self.schema.get_genelist())
+        run_cmd(cmd, self.log, input="no\n")
 
 
-def get_genelist(dir, species_id, schema_id):
-    ## Returns a genelist option for the chewbbaca command or an empty string if no such list exists.
-    genelist = Path(dir, f"{species_id}_{schema_id}.list")
-    if genelist.exists():
-        return f"-gl {str(genelist)}"
-    else:
-        return ""
+class Schema:
+    def __init__(self, species_name, schema_home, mapping, genelist_dir, log) -> None:
+        self.species_name = species_name
+        self.schema_home = Path(schema_home)
+        self.mapping = mapping
+        self.log = log
+        self.schema_dir = None
+        self.genelist_dir = Path(genelist_dir)
+        self.get_species_id()
 
-def get_species_id(species_name, mapping, schema_dir, log):
-    mapping[species_name]
-    fetch_schema(*mapping[species_name], schema_dir, log)
-    return mapping[species_name]
+    def path(self):
+        self.schema_path = Path(self.schema_home, f"{self.schema_name}_{self.species_id}_{self.schema_id}")
+        if not self.schema_path.exists():
+            self.fetch_schema()
+        if self.schema_dir is None:
+            self.schema_dir = next(self.schema_path.iterdir())
+        return self.schema_dir
 
-def fetch_schema(schema_name, species_id, schema_id, schema_dir, log):
-    if not os.path.exists(f"{schema_dir}/{schema_name}_{species_id}_{schema_id}"):
-        cmd = f"chewBBACA.py DownloadSchema -sp {species_id} -sc {schema_id} -o {schema_dir}/{schema_name}_{species_id}_{schema_id}"
-        run_cmd(cmd,log)
-    else:
-        sync_schema(schema_name, species_id, schema_id, schema_dir, log)
+    def get_genelist(self):
+        ## Returns a genelist option for the chewbbaca command or an empty string if no such list exists.
+        genelist = self.genelist_dir / f"{self.species_id}_{self.schema_id}.list"
+        if genelist.exists():
+            return ["--gl", str(genelist)]
+        else:
+            return []
 
-def sync_schema(schema_name, species_id, schema_id, schema_dir, log):
-    cmd = f"chewBBACA.py SyncSchema -sc {schema_dir}/{schema_name}_{species_id}_{schema_id}/*"
-    run_cmd(cmd, log)
+    def get_species_id(self):
+        self.schema_name, self.species_id, self.schema_id = self.mapping[self.species_name]
+        return self.species_id
+
+    def fetch_schema(self):
+        cmd = ["chewBBACA.py", "DownloadSchema", "-sp", str(self.species_id), "-sc", str(self.schema_id), "-o" ,self.schema_path]
+        run_cmd(cmd,self.log)
+
+    def sync_schema(self):
+        cmd = ["chewBBACA.py", "SyncSchema", "-sc", str(self.path())]
+        run_cmd(cmd, self.log)
 
 
 

@@ -63,17 +63,15 @@ db_values_changes:
   sample:
     categories:
       cgmlst:
+        name:
         summary:  # see sample_component summary
+          call_percent:
         component:
           _id: 
           date:  # ObjectId
-    report:
-      cgmlst:
-        title: "cgmlst"
-        info: *component_name
-        columns: 
-          - {id: "alleles", name: "alleles"}
-        data: []
+        report:
+          loci: []
+          alleles: {}
   sample_component:
     summary:
       sequence_type: 

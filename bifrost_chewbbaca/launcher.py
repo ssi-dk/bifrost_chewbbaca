@@ -3,8 +3,6 @@
 Launcher file for accessing dockerfile commands
 """
 import argparse
-from io import FileIO, StringIO
-import json
 import os
 import sys
 import traceback
@@ -16,46 +14,46 @@ import yaml
 import pprint
 from typing import List, Dict
 
-from yaml.tokens import StreamEndToken
-
 
 global COMPONENT
 
 
 def initialize():
-    with open(os.path.join(os.path.dirname(__file__), 'config.yaml')) as fh:
+    with open(
+        os.path.join(os.path.dirname(__file__), "config.yaml"), encoding="utf-8"
+    ) as fh:
         config: Dict = yaml.load(fh, Loader=yaml.FullLoader)
 
-    if not(datahandling.has_a_database_connection()):
+    if not (datahandling.has_a_database_connection()):
         raise ConnectionError("BIFROST_DB_KEY is not set or other connection error")
 
     global COMPONENT
     try:
         component_ref = ComponentReference(name=config["name"])
         COMPONENT = Component.load(component_ref)
-        if COMPONENT is not None and '_id' in COMPONENT.json:
-                return
+        if COMPONENT is not None and "_id" in COMPONENT.json:
+            return
         else:
             COMPONENT = Component(value=config)
             install_component()
 
-    except Exception as e:
+    except Exception as _:
         print(traceback.format_exc(), file=sys.stderr)
     return
 
 
 def install_component():
-    COMPONENT['install']['path'] = os.path.os.getcwd()
+    COMPONENT["install"]["path"] = os.path.os.getcwd()
     print(f"Installing with path:{COMPONENT['install']['path']}")
     try:
         COMPONENT.save()
-        print(f"Done installing")
+        print("Done installing")
     except:
         print(traceback.format_exc(), file=sys.stderr)
         sys.exit(0)
 
 
-class types():
+class types:
     def file(path):
         if os.path.isfile(path):
             return os.path.abspath(path)
@@ -86,39 +84,38 @@ def parse_and_run(args: List[str]) -> None:
     # Using two parsers for UX so that install doesn't conflict while all the args still point to the main parser
     basic_parser = argparse.ArgumentParser(add_help=False)
     basic_parser.add_argument(
-        '--reinstall',
-        action='store_true',
+        "--reinstall",
+        action="store_true",
     )
     basic_parser.add_argument(
-        '--info',
-        action='store_true',
-        help='Provides basic information on COMPONENT'
+        "--info", action="store_true", help="Provides basic information on COMPONENT"
     )
 
-    #Second parser for the arguements related to the program, everything can be set to defaults (or has defaults)
-    parser: argparse.ArgumentParser = argparse.ArgumentParser(description=description, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument(
-        '--debug',
-        action='store_true',
-        help='Show arg values'
+    # Second parser for the arguements related to the program, everything can be set to defaults (or has defaults)
+    parser: argparse.ArgumentParser = argparse.ArgumentParser(
+        description=description, formatter_class=argparse.RawDescriptionHelpFormatter
     )
+    parser.add_argument("--debug", action="store_true", help="Show arg values")
     parser.add_argument(
-        '-out', '--outdir',
-        default=os.environ.get('BIFROST_RUN_DIR', os.getcwd()),
-        help='Output directory'
+        "-out",
+        "--outdir",
+        default=os.environ.get("BIFROST_RUN_DIR", os.getcwd()),
+        help="Output directory",
     )
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument(
-        '-name', '--sample_name',
-        action='store',
+        "-name",
+        "--sample_name",
+        action="store",
         type=str,
-        help='Sample name of sample in bifrost, sample has already been added to the bifrost DB'
+        help="Sample name of sample in bifrost, sample has already been added to the bifrost DB",
     )
     group.add_argument(
-        '-id', '--sample_id',
-        action='store',
+        "-id",
+        "--sample_id",
+        action="store",
         type=str,
-        help='Sample ID of sample in bifrost, sample has already been added to the bifrost DB'
+        help="Sample ID of sample in bifrost, sample has already been added to the bifrost DB",
     )
 
     try:
@@ -130,11 +127,11 @@ def parse_and_run(args: List[str]) -> None:
             show_info()
             return None
         else:
-            pipeline_options, junk = parser.parse_known_args(extras)
+            pipeline_options, _ = parser.parse_known_args(extras)
             if pipeline_options.debug is True:
                 print(pipeline_options)
             run_pipeline(pipeline_options)
-    except Exception as e:
+    except Exception as _:
         print(traceback.format_exc, file=sys.stderr)
 
 
@@ -144,7 +141,7 @@ def show_info() -> None:
 
 def run_pipeline(args: argparse.Namespace) -> None:
     try:
-        sample_var = f""
+        sample_var = ""
         if args.sample_id is not None:
             sample_var = f"sample_id={args.sample_id}"
         else:
@@ -152,20 +149,17 @@ def run_pipeline(args: argparse.Namespace) -> None:
         command = f"cd {args.outdir}; snakemake --nolock --cores all -s {os.path.join(os.path.dirname(__file__),'pipeline.smk')} --config {sample_var} component_name={COMPONENT['name']}"
         print(command)
         process: subprocess.Popen = subprocess.Popen(
-            command,
-            stdout=sys.stdout,
-            stderr=sys.stderr,
-            shell=True
+            command, stdout=sys.stdout, stderr=sys.stderr, shell=True
         )
         process.communicate()
     except:
         print(traceback.format_exc())
 
 
-def main(args = sys.argv):
+def main(args=sys.argv):
     initialize()
     parse_and_run(args)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

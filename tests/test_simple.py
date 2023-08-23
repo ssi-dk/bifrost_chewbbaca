@@ -28,12 +28,12 @@ class TestBifrostchewBBACA:
     bifrost_install_dir = os.environ["BIFROST_INSTALL_DIR"]
 
     test_dir = f"{bifrost_install_dir}/bifrost/test_data/output/test__chewbbaca/"
-    r1 = f"{bifrost_install_dir}/bifrost/test_data/samples/AE006468.fasta"
+    r1 = f"{bifrost_install_dir}/bifrost/test_data/samples/SRR2094561.fasta"
 
     json_entries = [
         {
             "_id": {"$oid": "000000000000000000000001"},
-            "name": "AE006468",
+            "name": "SRR2094561",
             "components": [],
             "categories": {
                 "contigs": {"summary": {"data": r1}},
@@ -81,7 +81,7 @@ class TestBifrostchewBBACA:
             shutil.rmtree(self.test_dir)
 
         os.makedirs(self.test_dir)
-        test_args = ["--sample_name", "AE006468", "--outdir", self.test_dir]
+        test_args = ["--sample_name", "SRR2094561", "--outdir", self.test_dir]
         launcher.main(args=test_args)
         assert (
             os.path.exists(f"{self.test_dir}/{self.component_name}/datadump_complete")

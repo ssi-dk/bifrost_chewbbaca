@@ -3,10 +3,10 @@ channels:
   - bioconda
   - defaults
 dependencies:
-  - snakemake-minimal==5.31.1 # updated from 5.7.1 because of envvars
-  - blast==2.14.0 # updated from blast>=2.9
-  - prodigal==2.6.3
-  - chewbbaca==3.2.0
+  - snakemake-minimal>=5.31.1 # updated from 5.7.1 because of envvars
+  - blast>=2.14.0 # updated from blast>=2.9
+  - prodigal>=2.6.3
+  - chewbbaca>=3.2.0
   - pip
   - pip:
     - pytest
@@ -17,4 +17,5 @@ dependencies:
     - argh
     - watchdog
     - bifrostlib
+    - black
     - -e .

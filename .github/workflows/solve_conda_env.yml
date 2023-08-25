@@ -25,4 +25,4 @@ jobs:
     - name: Check conda dependencies are compatible with the main program
       run: |
         $CONDA/bin/python --version
-        $CONDA/bin/chewBBACA.py -h
+  

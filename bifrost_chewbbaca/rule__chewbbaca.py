@@ -6,9 +6,9 @@ from bifrostlib.datahandling import SampleComponentReference
 from bifrostlib.datahandling import SampleComponent
 from bifrostlib.datahandling import Category
 from typing import Dict
-import os
-import shutil
-import re
+#import os
+#import shutil
+#import re
 from pathlib import Path
 
 def run_cmd(command, log, input=None):

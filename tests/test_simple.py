@@ -9,6 +9,8 @@ from bifrostlib.datahandling import SampleReference
 from bifrostlib.datahandling import Sample
 from bifrostlib.datahandling import RunReference
 from bifrostlib.datahandling import Run
+from bifrostlib.datahandling import BioDBReference
+from bifrostlib.datahandling import BioDB
 from bifrost_chewbbaca import launcher
 import pymongo
 import os, sys
@@ -45,6 +47,17 @@ class TestBifrostchewBBACA:
         }
     ]
     bson_entries = [database_interface.json_to_bson(i) for i in json_entries]
+    json_biodbs = [
+        {
+            "_id": {"$oid": "000000000000000000000001"}, 
+            "name": "test_cgMLSTschema", 
+            "path": "/bifrost/components/bifrost_chewbbaca/resources/test/",
+            "summary": {
+                "n_alleles": 8,
+            }
+        }
+    ]
+    bson_biodbs = [database_interface.json_to_bson(i) for i in json_biodbs]
 
     @classmethod
     def setup_class(cls):
@@ -53,6 +66,8 @@ class TestBifrostchewBBACA:
             cls.clear_all_collections(db)
             col = db["samples"]
             col.insert_many(cls.bson_entries)
+            col = db["biodbs"]
+            col.insert_many(cls.bson_biodbs)
             launcher.initialize()
             os.chdir(cls.current_dir)
 
@@ -60,7 +75,7 @@ class TestBifrostchewBBACA:
     def teardown_class(cls):
         with pymongo.MongoClient(os.environ['BIFROST_DB_KEY']) as client:
             db = client.get_database()
-            #cls.clear_all_collections(db)
+            cls.clear_all_collections(db)
 
     @staticmethod
     def clear_all_collections(db):
@@ -70,6 +85,7 @@ class TestBifrostchewBBACA:
         db.drop_collection("runs")
         db.drop_collection("sample_components")
         db.drop_collection("samples")
+        db.drop_collection("biodbs")
 
     def test_info(self):
         launcher.run_pipeline(["--info"])
@@ -96,5 +112,5 @@ class TestBifrostchewBBACA:
             db = client.get_database()
             samples = db['samples']
             sample_data = next(samples.find({}))
-            assert len(sample_data['categories']['cgmlst']['report']['loci']) == 2807
-            assert len(sample_data['categories']['cgmlst']['report']['alleles']) == 2807
+            assert len(sample_data['categories']['cgmlst']['report']['loci']) == 2804
+            assert len(sample_data['categories']['cgmlst']['report']['alleles']) == 2804

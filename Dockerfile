@@ -8,7 +8,7 @@ ARG FORCE_DOWNLOAD=true
 #---------------------------------------------------------------------------------------------------
 # Programs for all environments
 #---------------------------------------------------------------------------------------------------
-FROM continuumio/miniconda3:4.12.0 as build_base
+FROM continuumio/miniconda3:22.11.1 as build_base
 ONBUILD ARG BIFROST_COMPONENT_NAME
 ONBUILD ARG BUILD_ENV
 ONBUILD ARG MAINTAINER
@@ -18,7 +18,7 @@ ONBUILD LABEL \
     environment="${BUILD_ENV}" \
     maintainer="${MAINTAINER}"
 ONBUILD RUN \
-    conda install -yq -c conda-forge -c bioconda -c default snakemake-minimal==5.7.1;
+    conda install -yq -c conda-forge -c bioconda -c default snakemake-minimal==7.24.0;
 
 
 #---------------------------------------------------------------------------------------------------

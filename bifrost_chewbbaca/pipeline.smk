@@ -10,6 +10,8 @@ from bifrostlib.datahandling import ComponentReference
 from bifrostlib.datahandling import Component
 from bifrostlib.datahandling import SampleComponentReference
 from bifrostlib.datahandling import SampleComponent
+from bifrostlib.datahandling import BioDBReference
+from bifrostlib.datahandling import BioDB
 os.umask(0o2)
 
 
@@ -79,6 +81,26 @@ rule check_requirements:
 #- Templated section: end --------------------------------------------------------------------------
 
 #* Dynamic section: start **************************************************************************
+
+rule_name = "fetch_cgmlst_database"
+rule fetch_cgmlst_database:
+    message:
+        f"Running step:{rule_name}"
+    log:
+        out_file = f"{component['name']}/log/{rule_name}.out.log",
+        err_file = f"{component['name']}/log/{rule_name}.err.log",
+    benchmark:
+        f"{component['name']}/benchmarks/{rule_name}.benchmark"
+    input:
+        rules.check_requirements.output.check_file
+    output:
+        cgMLST_database_path = directory()
+    params:
+        samplecomponent_ref_json = samplecomponent.to_reference().json,
+        chewbbaca_schemes = component['resources']['schemes']
+    script:
+        os.path.join(os.path.dirname(workflow.snakefile), "rule__chewbbaca.py")
+    
 
 rule_name = "run_chewbbaca_on_genome"
 rule run_chewbbaca_on_genome:

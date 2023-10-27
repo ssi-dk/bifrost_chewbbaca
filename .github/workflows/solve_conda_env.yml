@@ -1,0 +1,28 @@
+name: Solve conda environment
+
+on: [push]
+
+jobs:
+  check-conda:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v2
+
+    - name: Set up Miniconda
+      uses: conda-incubator/setup-miniconda@v2
+
+    - name: Install conda dependencies
+      run: |
+        $CONDA/bin/conda env update --file environment.yml --name base
+
+    - name: Format with black
+      run: |
+        $CONDA/bin/black *.py
+        $CONDA/bin/black */*.py
+
+    - name: Check conda dependencies are compatible with the main program
+      run: |
+        $CONDA/bin/python --version
+  

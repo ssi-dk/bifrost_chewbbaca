@@ -41,6 +41,11 @@ onerror:
     if samplecomponent['status'] == "Running":
         common.set_status_and_save(sample, samplecomponent, "Failure")
 
+envvars:
+    "BIFROST_INSTALL_DIR",
+    "CONDA_PREFIX"
+
+
 rule all:
     input:
         # file is defined by datadump function
@@ -119,7 +124,9 @@ rule run_chewbbaca_on_genome:
         chewbbaca_done = f"{component['name']}/chewbbaca_done"
     params:
         samplecomponent_ref_json = samplecomponent.to_reference().json,
-        chewbbaca_schemes = component['resources']['schemes']
+        chewbbaca_schemes = f"{os.environ['BIFROST_INSTALL_DIR']}/bifrost/components/bifrost_{component['display_name']}/{component['resources']['schemes']}",
+        genelists = f"{os.environ['BIFROST_INSTALL_DIR']}/bifrost/components/bifrost_{component['display_name']}/{component['resources']['genelists']}"
+        #chewbbaca_schemes = component['resources']['schemes']
     script:
         os.path.join(os.path.dirname(workflow.snakefile), "rule__chewbbaca.py")
 

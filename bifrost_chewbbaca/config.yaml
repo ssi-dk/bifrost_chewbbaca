@@ -1,6 +1,6 @@
 #-Basic info----------------------------------------------------------------------------------------
 display_name: chewbbaca
-name: &component_name chewbbaca__v1.0.6__
+name: chewbbaca__v1.0.6
 version:
   schema: ["v2_1_0"]
   code: v1.0.6
@@ -26,6 +26,9 @@ install:
 #---------------------------------------------------------------------------------------------------
 
 #-Options-------------------------------------------------------------------------------------------
+# See this link for available options:
+# https://chewbbaca.readthedocs.io/en/latest/user/modules/DownloadSchema.html
+# chewBBACA.py DownloadSchema -sp 8 -sc 1 -o resources/Salmonella_enterica_8_1
 options:
   chewbbaca_species_mapping: # (name, speciesID, schemaID)
     Campylobacter jejuni: ["Campylobacter", 4, 1]
@@ -41,8 +44,8 @@ options:
 
 #-Required resource files---------------------------------------------------------------------------
 resources:
-  schemes: "/bifrost/components/bifrost_chewbbaca/resources"
-  genelists: "/bifrost/components/bifrost_chewbbaca/resources/genelists"
+  schemes: "resources/"
+  genelists: "resources/genelists/"
 #---------------------------------------------------------------------------------------------------
 
 #-Requirements to run component---------------------------------------------------------------------

@@ -30,7 +30,7 @@ class TestBifrostchewBBACA:
     test_dir = f"{bifrost_install_dir}/bifrost/test_data/output/test__chewbbaca/"
     r1 = f"{bifrost_install_dir}/bifrost/test_data/samples/SRR2094561.fasta"
 
-    json_entries = [
+    sample_template = [
         {
             "_id": {"$oid": "000000000000000000000001"},
             "name": "SRR2094561",
@@ -43,7 +43,7 @@ class TestBifrostchewBBACA:
             },
         }
     ]
-    bson_entries = [database_interface.json_to_bson(i) for i in json_entries]
+    bson_entries = [database_interface.json_to_bson(i) for i in sample_template]
 
     @classmethod
     def setup_class(cls):

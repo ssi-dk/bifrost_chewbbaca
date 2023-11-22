@@ -76,8 +76,8 @@ class TestBifrostchewBBACA:
         child: pathlib.Path
         for child in input_dir.iterdir():
             if child.is_file() and child.name.endswith('.fasta'):
-                filename_arg = child.name[:-6]
-                test_args = ["--sample_name", filename_arg, "--outdir", self.test_dir]
+                sample_name = child.name[:-6]
+                test_args = ["--sample_name", sample_name, "--outdir", self.test_dir]
                 launcher.main(args=test_args)
                 assert (
                     os.path.exists(f"{self.test_dir}/{self.component_name}/datadump_complete")

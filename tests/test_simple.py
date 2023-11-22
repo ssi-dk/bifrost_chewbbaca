@@ -6,6 +6,7 @@ from bifrost_chewbbaca import launcher
 import pymongo
 import os
 import shutil
+import pathlib
 
 
 @pytest.fixture
@@ -70,6 +71,13 @@ class TestBifrostchewBBACA:
             shutil.rmtree(self.test_dir)
 
         os.makedirs(self.test_dir)
+        input_dir = pathlib.Path(self.bifrost_install_dir, 'bifrost', 'test_data', 'samples')
+        assert(input_dir.exists())
+        fasta_filenames = input_dir.glob("*.fasta")
+        file_number = 0
+        for filename in fasta_filenames:
+            file_number += 1
+        assert(file_number == 1)
         test_args = ["--sample_name", "SRR2094561", "--outdir", self.test_dir]
         launcher.main(args=test_args)
         assert (

@@ -30,20 +30,17 @@ class TestBifrostchewBBACA:
     test_dir = f"{bifrost_install_dir}/bifrost/test_data/output/test__chewbbaca/"
     r1 = f"{bifrost_install_dir}/bifrost/test_data/samples/SRR2094561.fasta"
 
-    sample_template = [
-        {
-            "_id": {"$oid": "000000000000000000000001"},
-            "name": "SRR2094561",
-            "components": [],
-            "categories": {
-                "contigs": {"summary": {"data": r1}},
-                "species_detection": {
-                    "summary": {"detected_species": "Salmonella enterica"}
-                },
+    sample_template = {
+        "_id": {"$oid": "000000000000000000000001"},
+        "name": "SRR2094561",
+        "components": [],
+        "categories": {
+            "contigs": {"summary": {"data": r1}},
+            "species_detection": {
+                "summary": {"detected_species": "Salmonella enterica"}
             },
-        }
-    ]
-    bson_entries = [database_interface.json_to_bson(i) for i in sample_template]
+        },
+    }
 
     @staticmethod
     def clear_all_collections(db):
@@ -65,7 +62,8 @@ class TestBifrostchewBBACA:
             db = client.get_database()
             self.clear_all_collections(db)
             col = db["samples"]
-            col.insert_many(self.bson_entries)
+            bson_entry = database_interface.json_to_bson(self.sample_template)
+            col.insert_one(bson_entry)
             os.chdir(self.bifrost_install_dir)
 
         if os.path.isdir(self.test_dir):

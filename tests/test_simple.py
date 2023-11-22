@@ -52,7 +52,6 @@ class TestBifrostchewBBACA:
             cls.clear_all_collections(db)
             col = db["samples"]
             col.insert_many(cls.bson_entries)
-            launcher.initialize()
             os.chdir(cls.bifrost_install_dir)
 
     # @classmethod

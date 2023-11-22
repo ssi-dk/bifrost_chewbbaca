@@ -55,11 +55,11 @@ class TestBifrostchewBBACA:
             launcher.initialize()
             os.chdir(cls.bifrost_install_dir)
 
-    @classmethod
-    def teardown_class(cls):
-        with pymongo.MongoClient(os.environ["BIFROST_DB_KEY"]) as client:
-            db = client.get_database()
-            cls.clear_all_collections(db)
+    # @classmethod
+    # def teardown_class(cls):
+    #     with pymongo.MongoClient(os.environ["BIFROST_DB_KEY"]) as client:
+    #         db = client.get_database()
+    #         cls.clear_all_collections(db)
 
     @staticmethod
     def clear_all_collections(db):

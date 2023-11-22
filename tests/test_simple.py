@@ -45,21 +45,6 @@ class TestBifrostchewBBACA:
     ]
     bson_entries = [database_interface.json_to_bson(i) for i in sample_template]
 
-    @classmethod
-    def setup_class(cls):
-        with pymongo.MongoClient(os.environ["BIFROST_DB_KEY"]) as client:
-            db = client.get_database()
-            cls.clear_all_collections(db)
-            col = db["samples"]
-            col.insert_many(cls.bson_entries)
-            os.chdir(cls.bifrost_install_dir)
-
-    # @classmethod
-    # def teardown_class(cls):
-    #     with pymongo.MongoClient(os.environ["BIFROST_DB_KEY"]) as client:
-    #         db = client.get_database()
-    #         cls.clear_all_collections(db)
-
     @staticmethod
     def clear_all_collections(db):
         db.drop_collection("components")
@@ -76,6 +61,13 @@ class TestBifrostchewBBACA:
         launcher.run_pipeline(["--help"])
 
     def test_pipeline(self):
+        with pymongo.MongoClient(os.environ["BIFROST_DB_KEY"]) as client:
+            db = client.get_database()
+            self.clear_all_collections(db)
+            col = db["samples"]
+            col.insert_many(self.bson_entries)
+            os.chdir(self.bifrost_install_dir)
+
         if os.path.isdir(self.test_dir):
             shutil.rmtree(self.test_dir)
 

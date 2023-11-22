@@ -73,20 +73,18 @@ class TestBifrostchewBBACA:
         os.makedirs(self.test_dir)
         input_dir = pathlib.Path(self.bifrost_install_dir, 'bifrost', 'test_data', 'samples')
         assert(input_dir.exists())
-        file_number = 0
         child: pathlib.Path
         for child in input_dir.iterdir():
             if child.is_file() and child.name.endswith('.fasta'):
-                file_number += 1
-        assert(file_number == 1)
-        test_args = ["--sample_name", "SRR2094561", "--outdir", self.test_dir]
-        launcher.main(args=test_args)
-        assert (
-            os.path.exists(f"{self.test_dir}/{self.component_name}/datadump_complete")
-            == True
-        )
-        shutil.rmtree(self.test_dir)
-        assert not os.path.isdir(f"{self.test_dir}/{self.component_name}")
+                filename_arg = child.name[:-6]
+                test_args = ["--sample_name", filename_arg, "--outdir", self.test_dir]
+                launcher.main(args=test_args)
+                assert (
+                    os.path.exists(f"{self.test_dir}/{self.component_name}/datadump_complete")
+                    == True
+                )
+                shutil.rmtree(self.test_dir)
+                assert not os.path.isdir(f"{self.test_dir}/{self.component_name}")
 
     def test_db_output(self):
         with pymongo.MongoClient(os.environ["BIFROST_DB_KEY"]) as client:

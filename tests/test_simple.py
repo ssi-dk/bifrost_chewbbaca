@@ -32,7 +32,6 @@ class TestBifrostchewBBACA:
     r1 = f"{bifrost_install_dir}/bifrost/test_data/samples/SRR2094561.fasta"
 
     sample_template = {
-        "_id": {"$oid": "000000000000000000000001"},
         "name": "SRR2094561",
         "components": [],
         "categories": {

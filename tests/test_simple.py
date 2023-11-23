@@ -89,7 +89,8 @@ class TestBifrostchewBBACA:
                     == True
                 )
 
-                command = "mongoexport  --db bifrost_test_db --collection samples --pretty --out /home/finn/mongoexport.json"
+                command = \
+                    f"mongoexport  --db bifrost_test_db --collection samples --pretty --out {self.test_dir}/mongoexport.json"
                 process: subprocess.Popen = subprocess.Popen(
                     command, stdout=sys.stdout, stderr=sys.stderr, shell=True
                 )

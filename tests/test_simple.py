@@ -73,15 +73,20 @@ class TestBifrostchewBBACA:
         input_dir = pathlib.Path(self.bifrost_install_dir, 'bifrost', 'test_data', 'samples')
         assert(input_dir.exists())
         child: pathlib.Path
+        # Currently there can only be one fasta file ind the folder, otherwise test will fail.
+        # So the for loop is actually meaningless.
         for child in input_dir.iterdir():
             if child.is_file() and child.name.endswith('.fasta'):
                 sample_name = child.name[:-6]
                 test_args = ["--sample_name", sample_name, "--outdir", self.test_dir]
+
+                # This is the important line.
                 launcher.main(args=test_args)
                 assert (
                     os.path.exists(f"{self.test_dir}/{self.component_name}/datadump_complete")
                     == True
                 )
+                
                 shutil.rmtree(self.test_dir)
                 assert not os.path.isdir(f"{self.test_dir}/{self.component_name}")
 

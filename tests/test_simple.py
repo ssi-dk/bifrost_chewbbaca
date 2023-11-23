@@ -64,8 +64,8 @@ class TestBifrostchewBBACA:
             col = db["samples"]
             bson_entry = database_interface.json_to_bson(self.sample_template)
             col.insert_one(bson_entry)
-            os.chdir(self.bifrost_install_dir)
 
+        os.chdir(self.bifrost_install_dir)
         if os.path.isdir(self.test_dir):
             shutil.rmtree(self.test_dir)
 

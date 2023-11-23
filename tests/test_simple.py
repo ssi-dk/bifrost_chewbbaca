@@ -7,6 +7,8 @@ import pymongo
 import os
 import shutil
 import pathlib
+import subprocess
+import sys
 
 
 @pytest.fixture
@@ -86,9 +88,15 @@ class TestBifrostchewBBACA:
                     os.path.exists(f"{self.test_dir}/{self.component_name}/datadump_complete")
                     == True
                 )
-                
-                shutil.rmtree(self.test_dir)
-                assert not os.path.isdir(f"{self.test_dir}/{self.component_name}")
+
+                command = "mongoexport  --db bifrost_test_db --collection samples --pretty --out /home/finn/mongoexport.json"
+                process: subprocess.Popen = subprocess.Popen(
+                    command, stdout=sys.stdout, stderr=sys.stderr, shell=True
+                )
+                process.communicate()
+
+                # shutil.rmtree(self.test_dir)
+                # assert not os.path.isdir(f"{self.test_dir}/{self.component_name}")
 
     def test_db_output(self):
         with pymongo.MongoClient(os.environ["BIFROST_DB_KEY"]) as client:

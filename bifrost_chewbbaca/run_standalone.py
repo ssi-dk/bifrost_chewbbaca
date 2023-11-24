@@ -16,20 +16,6 @@ Loads new samples in MongoDB and runs ChewBBACA on them.
 """
 
 
-@pytest.fixture
-def test_connection():
-    assert datahandling.has_a_database_connection()
-    assert (
-        "TEST" in os.environ["BIFROST_DB_KEY"].upper()
-    )  # A very basic piece of protection ensuring the word test is in the DB
-
-
-def test_cwd():
-    bifrost_install_dir = os.environ["BIFROST_INSTALL_DIR"]
-    print(f"bifrost cwd: {bifrost_install_dir}")
-    assert bifrost_install_dir != ""
-
-
 @dataclass
 class Category:
     summary: dict
@@ -68,12 +54,6 @@ class TestBifrostchewBBACA:
         db.drop_collection("sample_components")
         db.drop_collection("samples")
 
-    def test_info(self):
-        launcher.run_pipeline(["--info"])
-
-    def test_help(self):
-        launcher.run_pipeline(["--help"])
-
     def test_pipeline(self):
         with pymongo.MongoClient(os.environ["BIFROST_DB_KEY"]) as client:
             db = client.get_database()
@@ -110,19 +90,6 @@ class TestBifrostchewBBACA:
                     command, stdout=sys.stdout, stderr=sys.stderr, shell=True
                 )
                 process.communicate()
-
-                # shutil.rmtree(self.test_dir)
-                # assert not os.path.isdir(f"{self.test_dir}/{self.component_name}")
-
-    def test_db_output(self):
-        with pymongo.MongoClient(os.environ["BIFROST_DB_KEY"]) as client:
-            print(f"databases: {client.list_database_names()}")
-            db = client.get_database()
-            print(f"collections: {db.list_collection_names()}")
-            samples = db["samples"]
-            sample_data = next(samples.find({}))
-            print(f"sample_data: {sample_data}")
-            assert len(sample_data["categories"]["cgmlst"]["report"]["loci"]) > 0
 
 
 if __name__ == '__main__':

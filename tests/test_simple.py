@@ -119,3 +119,8 @@ class TestBifrostchewBBACA:
             sample_data = next(samples.find({}))
             print(f"sample_data: {sample_data}")
             assert len(sample_data["categories"]["cgmlst"]["report"]["loci"]) > 0
+
+
+if __name__ == '__main__':
+    instance = TestBifrostchewBBACA()
+    instance.test_pipeline()

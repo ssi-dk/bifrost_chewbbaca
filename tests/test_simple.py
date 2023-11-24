@@ -31,13 +31,13 @@ class TestBifrostchewBBACA:
     bifrost_install_dir = os.environ["BIFROST_INSTALL_DIR"]
 
     test_dir = f"{bifrost_install_dir}/bifrost/test_data/output/test__chewbbaca/"
-    r1 = f"{bifrost_install_dir}/bifrost/test_data/samples/SRR2094561.fasta"
+    sample_dir = f"{bifrost_install_dir}/bifrost/test_data/samples/SRR2094561.fasta"
 
     sample_template = {
         "name": "SRR2094561",
         "components": [],
         "categories": {
-            "contigs": {"summary": {"data": r1}},
+            "contigs": {"summary": {"data": sample_dir}},
             "species_detection": {
                 "summary": {"detected_species": "Salmonella enterica"}
             },

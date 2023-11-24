@@ -6,6 +6,7 @@ import pathlib
 import subprocess
 import sys
 from dataclasses import dataclass
+from datetime import datetime
 
 from bifrostlib import datahandling
 from bifrostlib import database_interface
@@ -93,5 +94,8 @@ class TestBifrostchewBBACA:
 
 
 if __name__ == '__main__':
+    start_time = datetime.now()
     instance = TestBifrostchewBBACA()
     instance.test_pipeline()
+    run_time = datetime.now() - start_time
+    print(f"Run took {run_time.seconds} seconds")

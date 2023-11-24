@@ -56,6 +56,8 @@ class BifrostchewBBACA:
         # So the for loop is actually meaningless.
         for child in input_dir.iterdir():
             if child.is_file() and child.name.endswith('.fasta'):
+                print()
+                print(f"Processing fasta file: {child.name}")
                 sample_name = child.name[:-6]
                 sample = Sample(
                     name=sample_name,

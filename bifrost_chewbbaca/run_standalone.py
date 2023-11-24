@@ -1,5 +1,3 @@
-import pytest
-import pymongo
 import os
 import shutil
 import pathlib
@@ -8,7 +6,8 @@ import sys
 from dataclasses import dataclass
 from datetime import datetime
 
-from bifrostlib import datahandling
+import pymongo
+
 from bifrostlib import database_interface
 from bifrost_chewbbaca import launcher
 

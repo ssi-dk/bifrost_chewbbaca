@@ -45,10 +45,6 @@ class BifrostchewBBACA:
 
     def run_pipeline(self):
         os.chdir(self.bifrost_install_dir)
-        if os.path.isdir(self.output_dir):
-            shutil.rmtree(self.output_dir)
-
-        os.makedirs(self.output_dir)
         input_dir = pathlib.Path(self.bifrost_install_dir, 'bifrost', 'test_data', 'samples')
         assert(input_dir.exists())
         child: pathlib.Path
@@ -56,6 +52,9 @@ class BifrostchewBBACA:
         # So the for loop is actually meaningless.
         for child in input_dir.iterdir():
             if child.is_file() and child.name.endswith('.fasta'):
+                if os.path.isdir(self.output_dir):
+                    shutil.rmtree(self.output_dir)
+                os.makedirs(self.output_dir)
                 print()
                 print(f"Processing fasta file: {child.name}")
                 sample_name = child.name[:-6]

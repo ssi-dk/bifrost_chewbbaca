@@ -26,7 +26,7 @@ class Sample:
     components: list
     categories: dict
 
-class TestBifrostchewBBACA:
+class BifrostchewBBACA:
     component_name = "chewbbaca__v1.0.6"
 
     bifrost_install_dir = os.environ["BIFROST_INSTALL_DIR"]
@@ -94,7 +94,7 @@ class TestBifrostchewBBACA:
 
 if __name__ == '__main__':
     start_time = datetime.now()
-    instance = TestBifrostchewBBACA()
+    instance = BifrostchewBBACA()
     instance.test_pipeline()
     run_time = datetime.now() - start_time
     print(f"Run took {run_time.seconds} seconds")

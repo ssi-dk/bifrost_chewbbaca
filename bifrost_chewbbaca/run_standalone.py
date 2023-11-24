@@ -34,17 +34,6 @@ class BifrostchewBBACA:
     output_dir = f"{bifrost_install_dir}/bifrost/test_data/output/test__chewbbaca/"
     sample_dir = f"{bifrost_install_dir}/bifrost/test_data/samples/SRR2094561.fasta"
 
-    sample_template = {
-        "name": "SRR2094561",
-        "components": [],
-        "categories": {
-            "contigs": {"summary": {"data": sample_dir}},
-            "species_detection": {
-                "summary": {"detected_species": "Salmonella enterica"}
-            },
-        },
-    }
-
     @staticmethod
     def clear_all_collections(db):
         db.drop_collection("components")

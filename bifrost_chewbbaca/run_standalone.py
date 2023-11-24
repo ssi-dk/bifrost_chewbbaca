@@ -12,7 +12,7 @@ from bifrostlib import database_interface
 from bifrost_chewbbaca import launcher
 
 """
-Loads new samples in MongoDB and runs ChewBBACA on them.
+Loads a new sample into MongoDB and runs ChewBBACA on it.
 """
 
 

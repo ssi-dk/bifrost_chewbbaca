@@ -31,7 +31,7 @@ class TestBifrostchewBBACA:
 
     bifrost_install_dir = os.environ["BIFROST_INSTALL_DIR"]
 
-    test_dir = f"{bifrost_install_dir}/bifrost/test_data/output/test__chewbbaca/"
+    output_dir = f"{bifrost_install_dir}/bifrost/test_data/output/test__chewbbaca/"
     sample_dir = f"{bifrost_install_dir}/bifrost/test_data/samples/SRR2094561.fasta"
 
     sample_template = {
@@ -63,10 +63,10 @@ class TestBifrostchewBBACA:
             col.insert_one(bson_entry)
 
         os.chdir(self.bifrost_install_dir)
-        if os.path.isdir(self.test_dir):
-            shutil.rmtree(self.test_dir)
+        if os.path.isdir(self.output_dir):
+            shutil.rmtree(self.output_dir)
 
-        os.makedirs(self.test_dir)
+        os.makedirs(self.output_dir)
         input_dir = pathlib.Path(self.bifrost_install_dir, 'bifrost', 'test_data', 'samples')
         assert(input_dir.exists())
         child: pathlib.Path
@@ -75,17 +75,17 @@ class TestBifrostchewBBACA:
         for child in input_dir.iterdir():
             if child.is_file() and child.name.endswith('.fasta'):
                 sample_name = child.name[:-6]
-                test_args = ["--sample_name", sample_name, "--outdir", self.test_dir]
+                test_args = ["--sample_name", sample_name, "--outdir", self.output_dir]
 
                 # This is the important line.
                 launcher.main(args=test_args)
                 assert (
-                    os.path.exists(f"{self.test_dir}/{self.component_name}/datadump_complete")
+                    os.path.exists(f"{self.output_dir}/{self.component_name}/datadump_complete")
                     == True
                 )
 
                 command = \
-                    f"mongoexport  --db bifrost_test_db --collection samples --pretty --out {self.test_dir}/mongoexport.json"
+                    f"mongoexport  --db bifrost_test_db --collection samples --pretty --out {self.output_dir}/mongoexport.json"
                 process: subprocess.Popen = subprocess.Popen(
                     command, stdout=sys.stdout, stderr=sys.stderr, shell=True
                 )

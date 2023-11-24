@@ -11,6 +11,10 @@ from bifrostlib import datahandling
 from bifrostlib import database_interface
 from bifrost_chewbbaca import launcher
 
+"""
+Loads new samples in MongoDB and runs ChewBBACA on them.
+"""
+
 
 @pytest.fixture
 def test_connection():

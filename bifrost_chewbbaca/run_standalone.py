@@ -3,7 +3,7 @@ import shutil
 import pathlib
 import subprocess
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from datetime import datetime
 
 import pymongo
@@ -75,6 +75,17 @@ class BifrostchewBBACA:
         for child in input_dir.iterdir():
             if child.is_file() and child.name.endswith('.fasta'):
                 sample_name = child.name[:-6]
+                sample = Sample(
+                    name=sample_name,
+                    components=list(),
+                    categories={
+                        'contigs': Category(summary={"data": self.sample_dir}),
+                        'species_detection': Category(summary={"detected_species": "Salmonella enterica"})
+                    }
+                )
+                sample_dict = asdict(sample)
+                print("Initial sample document:")
+                print(sample_dict)
                 test_args = ["--sample_name", sample_name, "--outdir", self.output_dir]
 
                 # This is the important line.

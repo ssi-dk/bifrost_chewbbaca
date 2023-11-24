@@ -55,13 +55,6 @@ class BifrostchewBBACA:
         db.drop_collection("samples")
 
     def test_pipeline(self):
-        with pymongo.MongoClient(os.environ["BIFROST_DB_KEY"]) as client:
-            db = client.get_database()
-            self.clear_all_collections(db)
-            col = db["samples"]
-            bson_entry = database_interface.json_to_bson(self.sample_template)
-            col.insert_one(bson_entry)
-
         os.chdir(self.bifrost_install_dir)
         if os.path.isdir(self.output_dir):
             shutil.rmtree(self.output_dir)
@@ -86,6 +79,13 @@ class BifrostchewBBACA:
                 sample_dict = asdict(sample)
                 print("Initial sample document:")
                 print(sample_dict)
+                with pymongo.MongoClient(os.environ["BIFROST_DB_KEY"]) as client:
+                    db = client.get_database()
+                    self.clear_all_collections(db)
+                    col = db["samples"]
+                    bson_entry = database_interface.json_to_bson(sample_dict)
+                    col.insert_one(bson_entry)
+
                 test_args = ["--sample_name", sample_name, "--outdir", self.output_dir]
 
                 # This is the important line.

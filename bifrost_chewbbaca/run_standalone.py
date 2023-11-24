@@ -49,6 +49,9 @@ class BifrostchewBBACA:
         assert(input_dir.exists())
         child: pathlib.Path
         sample_count = 0
+        with pymongo.MongoClient(os.environ["BIFROST_DB_KEY"]) as client:
+            db = client.get_database()
+            self.clear_all_collections(db)
         for child in input_dir.iterdir():
             if child.is_file() and child.name.endswith('.fasta'):
                 sample_count += 1
@@ -71,7 +74,6 @@ class BifrostchewBBACA:
                 print(sample_dict)
                 with pymongo.MongoClient(os.environ["BIFROST_DB_KEY"]) as client:
                     db = client.get_database()
-                    self.clear_all_collections(db)
                     col = db["samples"]
                     bson_entry = database_interface.json_to_bson(sample_dict)
                     col.insert_one(bson_entry)

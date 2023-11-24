@@ -43,7 +43,7 @@ class BifrostchewBBACA:
         db.drop_collection("sample_components")
         db.drop_collection("samples")
 
-    def test_pipeline(self):
+    def run_pipeline(self):
         os.chdir(self.bifrost_install_dir)
         if os.path.isdir(self.output_dir):
             shutil.rmtree(self.output_dir)
@@ -95,6 +95,6 @@ class BifrostchewBBACA:
 if __name__ == '__main__':
     start_time = datetime.now()
     instance = BifrostchewBBACA()
-    instance.test_pipeline()
+    instance.run_pipeline()
     run_time = datetime.now() - start_time
     print(f"Run took {run_time.seconds} seconds")

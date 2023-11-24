@@ -48,10 +48,10 @@ class BifrostchewBBACA:
         input_dir = pathlib.Path(self.bifrost_install_dir, 'bifrost', 'test_data', 'samples')
         assert(input_dir.exists())
         child: pathlib.Path
-        # Currently there can only be one fasta file ind the folder, otherwise test will fail.
-        # So the for loop is actually meaningless.
+        sample_count = 0
         for child in input_dir.iterdir():
             if child.is_file() and child.name.endswith('.fasta'):
+                sample_count += 1
                 if os.path.isdir(self.output_dir):
                     shutil.rmtree(self.output_dir)
                 os.makedirs(self.output_dir)
@@ -84,13 +84,14 @@ class BifrostchewBBACA:
                     os.path.exists(f"{self.output_dir}/{self.component_name}/datadump_complete")
                     == True
                 )
-
-                command = \
-                    f"mongoexport  --db bifrost_test_db --collection samples --pretty --out {self.output_dir}/mongoexport.json"
-                process: subprocess.Popen = subprocess.Popen(
-                    command, stdout=sys.stdout, stderr=sys.stderr, shell=True
-                )
-                process.communicate()
+        print(f"Processed {str(sample_count)} samples")
+        print("Will now run mongoexport")
+        command = \
+            f"mongoexport  --db bifrost_test_db --collection samples --pretty --out {self.output_dir}/mongoexport.json"
+        process: subprocess.Popen = subprocess.Popen(
+            command, stdout=sys.stdout, stderr=sys.stderr, shell=True
+        )
+        process.communicate()
 
 
 if __name__ == '__main__':

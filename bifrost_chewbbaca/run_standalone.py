@@ -32,7 +32,7 @@ class BifrostchewBBACA:
     bifrost_install_dir = os.environ["BIFROST_INSTALL_DIR"]
 
     output_dir = f"{bifrost_install_dir}/bifrost/test_data/output/test__chewbbaca/"
-    sample_dir = f"{bifrost_install_dir}/bifrost/test_data/samples/SRR2094561.fasta"
+    sample_dir = f"{bifrost_install_dir}/bifrost/test_data/samples/"
 
     @staticmethod
     def clear_all_collections(db):
@@ -61,7 +61,7 @@ class BifrostchewBBACA:
                     name=sample_name,
                     components=list(),
                     categories={
-                        'contigs': Category(summary={"data": self.sample_dir}),
+                        'contigs': Category(summary={"data": self.sample_dir + child.name}),
                         'species_detection': Category(summary={"detected_species": "Salmonella enterica"})
                     }
                 )

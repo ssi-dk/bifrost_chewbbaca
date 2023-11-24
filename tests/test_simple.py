@@ -1,14 +1,15 @@
-from argparse import Namespace
 import pytest
-from bifrostlib import datahandling
-from bifrostlib import database_interface
-from bifrost_chewbbaca import launcher
 import pymongo
 import os
 import shutil
 import pathlib
 import subprocess
 import sys
+from dataclasses import dataclass
+
+from bifrostlib import datahandling
+from bifrostlib import database_interface
+from bifrost_chewbbaca import launcher
 
 
 @pytest.fixture
@@ -24,6 +25,16 @@ def test_cwd():
     print(f"bifrost cwd: {bifrost_install_dir}")
     assert bifrost_install_dir != ""
 
+
+@dataclass
+class Category:
+    summary: dict
+
+@dataclass
+class Sample:
+    name: str
+    components: list
+    categories: dict
 
 class TestBifrostchewBBACA:
     component_name = "chewbbaca__v1.0.6"

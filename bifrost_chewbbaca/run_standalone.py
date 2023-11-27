@@ -74,7 +74,7 @@ class BifrostchewBBACA:
                         'species_detection': Category(summary={"detected_species": "Salmonella enterica"}),
                         'sample_info':  Category(summary={
                             'institution': 'TEST',
-                            'sofi_sequence_id': run_name + ' ' + sample_name
+                            'sofi_sequence_id': run_name + '_' + sample_name
                             })
                     }
                 )

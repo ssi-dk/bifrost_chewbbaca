@@ -98,7 +98,8 @@ if __name__ == '__main__':
     run_time = now - start_time
     print(f"Run took {run_time.seconds} seconds")
     print("Will now run mongoexport")
-    path = f"~/mongoexports/{now.isoformat(timespec='seconds')}.json"
+    export_filename = now.isoformat(timespec='seconds').replace(':', '') + '.json'
+    path = f"~/mongoexports/{export_filename}"
     command = \
         f"mongoexport  --db bifrost_test_db --collection samples --pretty --out {path}"
     process: subprocess.Popen = subprocess.Popen(

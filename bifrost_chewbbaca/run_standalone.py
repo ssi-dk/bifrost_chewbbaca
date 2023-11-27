@@ -66,7 +66,8 @@ class BifrostchewBBACA:
                     components=list(),
                     categories={
                         'contigs': Category(summary={"data": self.sample_dir + child.name}),
-                        'species_detection': Category(summary={"detected_species": "Salmonella enterica"})
+                        'species_detection': Category(summary={"detected_species": "Salmonella enterica"}),
+                        'sample_info':  Category(summary={"institution": "TEST"})
                     }
                 )
                 sample_dict = asdict(sample)

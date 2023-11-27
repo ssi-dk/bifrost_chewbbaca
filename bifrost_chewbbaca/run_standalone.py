@@ -87,18 +87,21 @@ class BifrostchewBBACA:
                     == True
                 )
         print(f"Processed {str(sample_count)} samples")
-        print("Will now run mongoexport")
-        command = \
-            f"mongoexport  --db bifrost_test_db --collection samples --pretty --out {self.output_dir}/mongoexport.json"
-        process: subprocess.Popen = subprocess.Popen(
-            command, stdout=sys.stdout, stderr=sys.stderr, shell=True
-        )
-        process.communicate()
 
 
 if __name__ == '__main__':
+    os.path.exists('~/mongoexports')
     start_time = datetime.now()
     instance = BifrostchewBBACA()
     instance.run_pipeline()
-    run_time = datetime.now() - start_time
+    now = datetime.now()
+    run_time = now - start_time
     print(f"Run took {run_time.seconds} seconds")
+    print("Will now run mongoexport")
+    path = f'~/mongoexports/{now.isoformat()}.json'
+    command = \
+        f"mongoexport  --db bifrost_test_db --collection samples --pretty --out {path}"
+    process: subprocess.Popen = subprocess.Popen(
+        command, stdout=sys.stdout, stderr=sys.stderr, shell=True
+    )
+    process.communicate()

@@ -5,6 +5,8 @@ import subprocess
 import sys
 from dataclasses import dataclass, asdict
 from datetime import datetime
+import random
+import string
 
 import pymongo
 
@@ -15,6 +17,8 @@ from bifrost_chewbbaca import launcher
 Loads a new sample into MongoDB and runs ChewBBACA on it.
 """
 
+def rndstr(length):
+    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=length))
 
 @dataclass
 class Category:
@@ -49,6 +53,7 @@ class BifrostchewBBACA:
         assert(input_dir.exists())
         child: pathlib.Path
         sample_count = 0
+        run_name = rndstr(5)
         with pymongo.MongoClient(os.environ["BIFROST_DB_KEY"]) as client:
             db = client.get_database()
             self.clear_all_collections(db)
@@ -67,7 +72,10 @@ class BifrostchewBBACA:
                     categories={
                         'contigs': Category(summary={"data": self.sample_dir + child.name}),
                         'species_detection': Category(summary={"detected_species": "Salmonella enterica"}),
-                        'sample_info':  Category(summary={"institution": "TEST"})
+                        'sample_info':  Category(summary={
+                            'institution': 'TEST',
+                            'sofi_sequence_id': run_name + ' ' + sample_name
+                            })
                     }
                 )
                 sample_dict = asdict(sample)

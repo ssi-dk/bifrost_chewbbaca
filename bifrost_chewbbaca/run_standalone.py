@@ -99,7 +99,7 @@ class BifrostchewBBACA:
 
 
 if __name__ == '__main__':
-    os.path.exists('~/mongoexports')
+    assert os.path.exists('~/mongoexports')
     start_time = datetime.now()
     instance = BifrostchewBBACA()
     instance.run_pipeline()

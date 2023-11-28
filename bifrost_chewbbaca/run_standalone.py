@@ -57,6 +57,15 @@ class BifrostchewBBACA:
         with pymongo.MongoClient(os.environ["BIFROST_DB_KEY"]) as client:
             db = client.get_database()
             self.clear_all_collections(db)
+        
+        # Check that we do not get too long sample names!
+        for child in input_dir.iterdir():
+            if child.is_file() and child.name.endswith('.fasta'):
+                sample_name = child.name[:-6]
+                if len(sample_name) > 30:
+                    print(f"File name too long: {child.name}")
+                    sys.exit()
+
         for child in input_dir.iterdir():
             if child.is_file() and child.name.endswith('.fasta'):
                 sample_count += 1

@@ -99,7 +99,8 @@ class BifrostchewBBACA:
 
 
 if __name__ == '__main__':
-    assert os.path.exists('~/mongoexports')
+    export_dir = pathlib.Path(os.environ["MONGOEXPORT_DIR"])
+    assert export_dir.exists()
     start_time = datetime.now()
     instance = BifrostchewBBACA()
     instance.run_pipeline()
@@ -108,9 +109,10 @@ if __name__ == '__main__':
     print(f"Run took {run_time.seconds} seconds")
     print("Will now run mongoexport")
     export_filename = now.isoformat(timespec='seconds').replace(':', '') + '.json'
-    path = f"~/mongoexports/{export_filename}"
+    export_filepath = pathlib.Path(export_dir, export_filename)
+    print(f"Export will be saved in {export_filepath}")
     command = \
-        f"mongoexport  --db bifrost_test_db --collection samples --pretty --out {path}"
+        f"mongoexport --db bifrost_test_db --collection samples --pretty --out {str(export_filepath)}"
     process: subprocess.Popen = subprocess.Popen(
         command, stdout=sys.stdout, stderr=sys.stderr, shell=True
     )

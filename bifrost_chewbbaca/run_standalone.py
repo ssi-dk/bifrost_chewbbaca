@@ -60,14 +60,14 @@ class BifrostchewBBACA:
         
         # Check that we do not get too long sample names!
         for child in input_dir.iterdir():
-            if child.is_file() and child.name.endswith('.fasta'):
+            if child.is_file() and (child.name.endswith('.fasta') or child.name.endswith('.fna')):
                 sample_name = child.name[:-6]
                 if len(sample_name) > 30:
                     print(f"File name too long: {child.name}")
                     sys.exit()
 
         for child in input_dir.iterdir():
-            if child.is_file() and child.name.endswith('.fasta'):
+            if child.is_file() and (child.name.endswith('.fasta') or child.name.endswith('.fna')):
                 sample_count += 1
                 if os.path.isdir(self.output_dir):
                     shutil.rmtree(self.output_dir)

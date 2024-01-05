@@ -27,7 +27,9 @@ try:
     samplecomponent_ref = SampleComponentReference(name=SampleComponentReference.name_generator(sample.to_reference(), component.to_reference()))
     samplecomponent = SampleComponent.load(samplecomponent_ref)
     if samplecomponent is None:
+        print(f"SampleComponent: {samplecomponent}\nCreating New")
         samplecomponent:SampleComponent = SampleComponent(sample_reference=sample.to_reference(), component_reference=component.to_reference()) # schema 2.1
+        print(f"{samplecomponent.json}")
     common.set_status_and_save(sample, samplecomponent, "Running")
 
     
@@ -87,24 +89,24 @@ rule check_requirements:
 
 #* Dynamic section: start **************************************************************************
 
-rule_name = "fetch_cgmlst_database"
-rule fetch_cgmlst_database:
-    message:
-        f"Running step:{rule_name}"
-    log:
-        out_file = f"{component['name']}/log/{rule_name}.out.log",
-        err_file = f"{component['name']}/log/{rule_name}.err.log",
-    benchmark:
-        f"{component['name']}/benchmarks/{rule_name}.benchmark"
-    input:
-        rules.check_requirements.output.check_file
-    output:
-        cgMLST_database_path = directory()
-    params:
-        samplecomponent_ref_json = samplecomponent.to_reference().json,
-        chewbbaca_schemes = component['resources']['schemes']
-    script:
-        os.path.join(os.path.dirname(workflow.snakefile), "rule__chewbbaca.py")
+# rule_name = "fetch_cgmlst_database"
+# rule fetch_cgmlst_database:
+#     message:
+#         f"Running step:{rule_name}"
+#     log:
+#         out_file = f"{component['name']}/log/{rule_name}.out.log",
+#         err_file = f"{component['name']}/log/{rule_name}.err.log",
+#     benchmark:
+#         f"{component['name']}/benchmarks/{rule_name}.benchmark"
+#     input:
+#         rules.check_requirements.output.check_file
+#     output:
+#         cgMLST_database_path = directory()
+#     params:
+#         samplecomponent_ref_json = samplecomponent.to_reference().json,
+#         chewbbaca_schemes = component['resources']['schemes']
+#     script:
+#         os.path.join(os.path.dirname(workflow.snakefile), "rule__chewbbaca.py")
     
 
 rule_name = "run_chewbbaca_on_genome"
@@ -126,7 +128,6 @@ rule run_chewbbaca_on_genome:
         samplecomponent_ref_json = samplecomponent.to_reference().json,
         chewbbaca_schemes = f"{os.environ['BIFROST_INSTALL_DIR']}/bifrost/components/bifrost_{component['display_name']}/{component['resources']['schemes']}",
         genelists = f"{os.environ['BIFROST_INSTALL_DIR']}/bifrost/components/bifrost_{component['display_name']}/{component['resources']['genelists']}"
-        #chewbbaca_schemes = component['resources']['schemes']
     script:
         os.path.join(os.path.dirname(workflow.snakefile), "rule__chewbbaca.py")
 

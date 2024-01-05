@@ -26,8 +26,9 @@ try:
         raise Exception("invalid component passed") # component needs to be in database
     samplecomponent_ref = SampleComponentReference(name=SampleComponentReference.name_generator(sample.to_reference(), component.to_reference()))
     samplecomponent = SampleComponent.load(samplecomponent_ref)
-    if samplecomponent is None:
-        print(f"SampleComponent: {samplecomponent}\nCreating New")
+    try:
+        print(samplecomponent.has_requirements())
+    except Exception:
         samplecomponent:SampleComponent = SampleComponent(sample_reference=sample.to_reference(), component_reference=component.to_reference()) # schema 2.1
         print(f"{samplecomponent.json}")
     common.set_status_and_save(sample, samplecomponent, "Running")

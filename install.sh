@@ -121,7 +121,7 @@ if test -f "$REQ_TXT";
 then
   echo "Making conda env"
   echo "$ENV_NAME will be created"
-  conda env create -f "$REQ_TXT" --name $ENV_NAME
+  mamba env create -f "$REQ_TXT" --name $ENV_NAME
 else
   echo "environment.yml file cannot be found in the script folder"
   exit 1

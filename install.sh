@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -euo pipefail
+
 helpFunction()
 {
    echo ""
@@ -39,7 +41,7 @@ if [ "$parameterI" == "COMP" ]
 then
   echo "Starting computerome install"
   module load tools computerome_utils/2.0
-  module load tools anaconda3/2022.10
+  module load tools $CONDA_VERSION
   #if $BIFROST_CONDA_PATH is not set then exit with help message
   if [ -z "$BIFROST_CONDA_PATH" ]
   then
@@ -121,7 +123,7 @@ if test -f "$REQ_TXT";
 then
   echo "Making conda env"
   echo "$ENV_NAME will be created"
-  conda env create -f "$REQ_TXT" --name $ENV_NAME
+  mamba env create --file "$REQ_TXT" --name $ENV_NAME
 else
   echo "environment.yml file cannot be found in the script folder"
   exit 1
@@ -148,7 +150,5 @@ fi
 if test -f "$CUSTOM_INSTALL_PATH";
 then
   echo -e "\nRunning custom_install.sh"
-  eval "$(conda shell.bash hook)"
-  conda activate $ENV_NAME
-  bash $CUSTOM_INSTALL_PATH -i $parameterI
+  bash -i $CUSTOM_INSTALL_PATH $ENV_NAME #-i required for interactive mode to active env
 fi

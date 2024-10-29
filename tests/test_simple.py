@@ -72,7 +72,7 @@ class TestBifrostchewBBACA:
     def teardown_class(cls):
         with pymongo.MongoClient(os.environ["BIFROST_DB_KEY"]) as client:
             db = client.get_database()
-            cls.clear_all_collections(db)
+            #cls.clear_all_collections(db)
 
     @staticmethod
     def clear_all_collections(db):
@@ -101,7 +101,7 @@ class TestBifrostchewBBACA:
             os.path.exists(f"{self.test_dir}/{self.component_name}/datadump_complete")
             == True
         )
-        shutil.rmtree(self.test_dir)
+        #shutil.rmtree(self.test_dir)
         assert not os.path.isdir(f"{self.test_dir}/{self.component_name}")
 
     def test_db_output(self):

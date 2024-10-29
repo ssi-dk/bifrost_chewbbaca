@@ -86,9 +86,9 @@ def datadump(samplecomponent_ref_json: Dict):
 
 
 def extract_digits_from_component_version(component_str):
-    version_re = re.compile(".*__(v.*)__.*")
+    version_re = re.compile(r".*__v(\d+\.\d+\.\d+)(__)?.*")
     version_group = re.match(version_re, component_str).groups()[0]
-    version_digits = int("".join([i for i in version_group if i.isdigit()]))
+    version_digits = tuple([int(i) for i in version_group.split(".") if i.isdigit()])
     return version_digits
 
 

@@ -34,7 +34,6 @@ def rule__chewbbaca(input: object, output: object, params: object, log: object) 
         samplecomponent = SampleComponent.load(samplecomponent_ref)
         sample = Sample.load(samplecomponent.sample)
         component = Component.load(samplecomponent.component)
-        print(component["options"])
         sample_name = sample["name"]
         # Variables being used
         # resources_dir = component['resources']['schemes']
@@ -44,18 +43,15 @@ def rule__chewbbaca(input: object, output: object, params: object, log: object) 
             schema = Schema(
                 detected_species,
                 params.chewbbaca_schemes,
-                component["options"]["chewbbaca_species_mapping"],
-                params.genelists,
+                component["options"]["chewbbaca_species_mapping"]["schema"],
                 log,
             )
-            # schema = Schema(detected_species,params.chewbbaca_schemes, component["options"]["chewbbaca_species_mapping"],component['resources']['genelists'], log)
         except KeyError:
             run_cmd(f"touch {component['name']}/no_cgmlst_species_DB", log)
         allelecall = ChewbbacaAlleleCall(
             sample_name, schema, input.genome, output.chewbbaca_results, log
         )
         allelecall.run()
-        schema.sync_schema()
         with open(output.chewbbaca_done, "w", encoding="utf-8") as fh:
             fh.write("")
     except Exception:
@@ -83,69 +79,30 @@ class ChewbbacaAlleleCall:
         cmd = [
             "chewBBACA.py",
             "AlleleCall",
-            "-i",
-            self.inputdir,
-            "-g",
-            self.schema.path(),
-            "-o",
-            self.outputdir,
-            "--cpu",
-            "4",
+            "-i", self.inputdir,
+            "-g", self.schema.path(),
+            "-o", self.outputdir,
+            "--cpu", "4",
+            "--pm", "meta",
+            "--cds"
         ]
-        cmd.extend(self.schema.get_genelist())
         run_cmd(cmd, self.log, input="no\n")
 
 
 class Schema:
-    def __init__(self, species_name, schema_home, mapping, genelist_dir, log) -> None:
+    def __init__(self, species_name, schema_home, mapping, log) -> None:
         self.species_name = species_name
         self.schema_home = Path(schema_home)
         self.mapping = mapping
         self.log = log
         self.schema_dir = None
-        self.genelist_dir = Path(genelist_dir)
-        self.get_species_id()
 
     def path(self):
-        self.schema_path = Path(
-            self.schema_home, f"{self.schema_name}_{self.species_id}_{self.schema_id}"
+        self.schema_dir = Path(
+            self.schema_home, f"{self.mapping[self.species_name]}"
         )
-        if not self.schema_path.exists():
-            self.fetch_schema()
-        if self.schema_dir is None:
-            self.schema_dir = next(self.schema_path.iterdir())
         return self.schema_dir
 
-    def get_genelist(self):
-        ## Returns a genelist option for the chewbbaca command or an empty string if no such list exists.
-        genelist = self.genelist_dir / f"{self.species_id}_{self.schema_id}.list"
-        if genelist.exists():
-            return ["--gl", str(genelist)]
-        else:
-            return []
-
-    def get_species_id(self):
-        self.schema_name, self.species_id, self.schema_id = self.mapping[
-            self.species_name
-        ]
-        return self.species_id
-
-    def fetch_schema(self):
-        cmd = [
-            "chewBBACA.py",
-            "DownloadSchema",
-            "-sp",
-            str(self.species_id),
-            "-sc",
-            str(self.schema_id),
-            "-o",
-            self.schema_path,
-        ]
-        run_cmd(cmd, self.log)
-
-    def sync_schema(self):
-        cmd = ["chewBBACA.py", "SyncSchema", "-sc", str(self.path())]
-        run_cmd(cmd, self.log)
 
 
 rule__chewbbaca(snakemake.input, snakemake.output, snakemake.params, snakemake.log)

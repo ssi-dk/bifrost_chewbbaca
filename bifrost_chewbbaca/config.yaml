@@ -30,22 +30,33 @@ install:
 # https://chewbbaca.readthedocs.io/en/latest/user/modules/DownloadSchema.html
 # chewBBACA.py DownloadSchema -sp 8 -sc 1 -o resources/Salmonella_enterica_8_1
 options:
-  chewbbaca_species_mapping: # (name, speciesID, schemaID)
-    Campylobacter jejuni: ["Campylobacter", 4, 1]
-    Campylobacter coli: ["Campylobacter", 4, 1]
-    Escherichia coli: ["Escherichia_coli", 5, 1]
-    Shigella sonnei: ["Escherichia_coli", 5, 1]
-    Shigella flex: ["Escherichia_coli", 5, 1]
-    Salmonella enterica: ["Salmonella_enterica", 8, 1]
-    Yersinia enterocolitica: ["Yersinia", 7, 1]
-    Listeria monocytogenes: ["Listeria", 6, 1]
+  chewbbaca_species_mapping: # (name)
+    schema:
+      Campylobacter jejuni: "Campy_oxford_cgMLST_scheme_chewBBACA_sizefilter40_st_6p"
+      Campylobacter coli: "Campy_oxford_cgMLST_scheme_chewBBACA_sizefilter40_st_6p"
+      Escherichia coli: "Escherichia_enterobase_cgMLSTv1_chewBBACA_sizefilter40_st_12p"
+      Shigella sonnei: "Escherichia_enterobase_cgMLSTv1_chewBBACA_sizefilter40_st_12p"
+      Shigella flexneri: "Escherichia_enterobase_cgMLSTv1_chewBBACA_sizefilter40_st_12p"
+      Salmonella enterica: "Salmonella_enterobase_cgMLSTv2_230207_chewBBACA_sizefilter40_st_05p"
+      Listeria monocytogenes: "Listeria_bigsdb_cgmlst1748_chewBBACA_sizefilter40_st_5p"
+      Clostridioides difficile: "Cdiff_enterobase_cgMLSTv1_chewBBACA_sizefilter40_st001p"
+    blastdb:
+      Campylobacter jejuni: "all_campy_loci_blastdb"
+      Campylobacter coli: "all_campy_loci_blastdb"
+      Escherichia coli: "all_coli_loci_blastdb"
+      Shigella sonnei: "all_coli_loci_blastdb"
+      Shigella flexneri: "all_coli_loci_blastdb"
+      Salmonella enterica: "all_salm_loci_blastdb"
+      Listeria monocytogenes: "all_listeria_loci_blastdb"
+      Clostridioides difficile: "all_cdiff_loci_blastdb"
+      
 
 #---------------------------------------------------------------------------------------------------
 
 #-Required resource files---------------------------------------------------------------------------
 resources:
-  schemes: "resources/"
-  genelists: "resources/genelists/"
+  schemes: "resources/schemes/"
+  blastdb: "resources/blastdb/"
 #---------------------------------------------------------------------------------------------------
 
 #-Requirements to run component---------------------------------------------------------------------

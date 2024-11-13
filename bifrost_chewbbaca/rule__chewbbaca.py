@@ -41,10 +41,10 @@ def rule__chewbbaca(input: object, output: object, params: object, log: object) 
         detected_species = species_detection["summary"]["detected_species"]
         try:
             schema = Schema(
-                detected_species,
-                params.chewbbaca_schemes,
-                component["options"]["chewbbaca_species_mapping"]["schema"],
-                log,
+                species_name=detected_species,
+                schema_home=params.chewbbaca_schemes,
+                mapping=component["options"]["chewbbaca_species_mapping"]["schema"],
+                log=log
             )
         except KeyError:
             run_cmd(f"touch {component['name']}/no_cgmlst_species_DB", log)

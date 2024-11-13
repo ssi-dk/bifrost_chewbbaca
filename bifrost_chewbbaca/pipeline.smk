@@ -46,6 +46,7 @@ onerror:
 
 envvars:
     "BIFROST_INSTALL_DIR",
+    "BIFROST_CG_MLST_DIR",
     "CONDA_PREFIX"
 
 
@@ -124,13 +125,11 @@ rule blast_gene_call:
         genome = f"{sample['categories']['contigs']['summary']['data']}"
     params:
         samplecomponent_ref_json = samplecomponent.to_reference().json,
-        chewbbaca_blastdb = f"{os.environ['BIFROST_INSTALL_DIR']}/bifrost/components/bifrost_{component['display_name']}/{component['resources']['blastdb']}",
+        chewbbaca_blastdb = f"{os.environ['BIFROST_CG_MLST_DIR']}/blastdb/",
     output:
         gene_call_results = directory(f"{component['name']}/blast_gene_call_results")
     script:
         os.path.join(os.path.dirname(workflow.snakefile), "rule__blast_genecall.py")
-python /srv/data/FBI/SOFI/scripts/blast_gene_call_pyhton_blastdb.py --db /srv/data/FBI/SOFI/dbs_chewBBACA_3/campy_all_loci_blastdb --fa ../ass_fron_BN/ \
---out results
 
 rule_name = "run_chewbbaca_on_genome"
 rule run_chewbbaca_on_genome:
@@ -143,13 +142,14 @@ rule run_chewbbaca_on_genome:
         f"{component['name']}/benchmarks/{rule_name}.benchmark"
     input:
         rules.check_requirements.output.check_file,
+        rules.blast_gene_call.output.gene_call_results,
         genome = f"{sample['categories']['contigs']['summary']['data']}"
     output:
         chewbbaca_results = directory(f"{component['name']}/chewbbaca_results"),
         chewbbaca_done = f"{component['name']}/chewbbaca_done"
     params:
         samplecomponent_ref_json = samplecomponent.to_reference().json,
-        chewbbaca_schemes = f"{os.environ['BIFROST_INSTALL_DIR']}/bifrost/components/bifrost_{component['display_name']}/{component['resources']['schemes']}",
+        chewbbaca_schemes = f"{os.environ['BIFROST_CG_MLST_DIR']}/schemes/",
     script:
         os.path.join(os.path.dirname(workflow.snakefile), "rule__chewbbaca.py")
 

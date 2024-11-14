@@ -129,6 +129,7 @@ rule blast_gene_call:
         chewbbaca_blastdb = f"{os.environ['BIFROST_CG_MLST_DIR']}/blastdb/",
     output:
         gene_call_results = directory(f"{component['name']}/blast_gene_call_results"),
+        gene_calls = gene_call_results+f"/{sample_name}.fa"
         gene_call_done = f"{component['name']}/blast_gene_call_done"
     script:
         os.path.join(os.path.dirname(workflow.snakefile), "rule__blast_genecall.py")
@@ -146,7 +147,7 @@ rule run_chewbbaca_on_genome:
         rules.check_requirements.output.check_file,
         rules.blast_gene_call.output.gene_call_done,
         #genome = f"{sample['categories']['contigs']['summary']['data']}"
-        genome = rules.blast_gene_call.output.gene_call_results+f"/{sample_name}.fa"
+        genome = rules.blast_gene_call.output.gene_calls
     output:
         chewbbaca_results = directory(f"{component['name']}/chewbbaca_results"),
         chewbbaca_done = f"{component['name']}/chewbbaca_done"

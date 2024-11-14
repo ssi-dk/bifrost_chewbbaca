@@ -32,10 +32,10 @@ def rule__blast_genecall(input: object, output: object, params: object, log: obj
             db=Path(params.chewbbaca_blastdb)/component["options"]["chewbbaca_species_mapping"]['blastdb'][detected_species],
             output_dir=output.gene_call_results)
 
-        process_loci_parallel(
-            component["options"]["chewbbaca_species_mapping"]['blastdb'][detected_species],
-            input.genome,
-            output.gene_call_results)
+        # process_loci_parallel(
+        #     component["options"]["chewbbaca_species_mapping"]['blastdb'][detected_species],
+        #     input.genome,
+        #     output.gene_call_results)
         with open(output.gene_call_done, "w", encoding="utf-8") as fh:
             fh.write("")
     except Exception:

@@ -73,7 +73,7 @@ class ChewbbacaAlleleCall:
     def prepare_run(self):
         self.inputdir = self.output / "input"
         self.inputdir.mkdir(parents=True)
-        Path(self.inputdir / (self.sample_name + ".fasta")).symlink_to(self.genome)
+        Path(self.inputdir / (self.sample_name + ".fasta")).symlink_to(self.genome.absolute())
 
     def run(self):
         cmd = [

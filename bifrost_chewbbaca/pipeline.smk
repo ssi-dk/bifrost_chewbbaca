@@ -20,6 +20,7 @@ try:
     sample:Sample = Sample.load(sample_ref) # schema 2.1
     if sample is None:
         raise Exception("invalid sample passed")
+    sample_name =sample['name']
     component_ref = ComponentReference(name=config['component_name'])
     component:Component = Component.load(reference=component_ref) # schema 2.1
     if component is None:
@@ -144,7 +145,8 @@ rule run_chewbbaca_on_genome:
     input:
         rules.check_requirements.output.check_file,
         rules.blast_gene_call.output.gene_call_done,
-        genome = f"{sample['categories']['contigs']['summary']['data']}"
+        #genome = f"{sample['categories']['contigs']['summary']['data']}"
+        genome = rules.blast_gene_call.output.gene_call_results+f"/{sample_name}.fa"
     output:
         chewbbaca_results = directory(f"{component['name']}/chewbbaca_results"),
         chewbbaca_done = f"{component['name']}/chewbbaca_done"

@@ -189,7 +189,7 @@ def process_single_assembly(assembly_path, db, output_dir):
     """
     Processes a single assembly against the specified database and writes the combined alleles to a single file.
     """
-    assembly_name = os.path.basename(assembly_path).replace('.fa', '').replace('.fasta', '')
+    assembly_name = os.path.basename(assembly_path).replace('.fasta', '').replace('.fa', '')
 
     # Read the assembly sequences into memory once per assembly
     fasta_sequences = read_fasta(assembly_path)

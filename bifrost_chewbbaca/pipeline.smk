@@ -128,6 +128,7 @@ rule blast_gene_call:
         chewbbaca_blastdb = f"{os.environ['BIFROST_CG_MLST_DIR']}/blastdb/",
     output:
         gene_call_results = directory(f"{component['name']}/blast_gene_call_results")
+        gene_call_done
     script:
         os.path.join(os.path.dirname(workflow.snakefile), "rule__blast_genecall.py")
 

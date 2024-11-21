@@ -16,7 +16,6 @@ def run_blastn_and_parse(query_fa, db, assembly_sequences):
     full length for rare cases of the same locus appearing twice in one contig.
     """
     blastn_cmd = [
-        'srun', '-p', 'daytime', '-c', '6', '--mem', '25000',
         'blastn',
         '-query', query_fa,
         '-db', db,

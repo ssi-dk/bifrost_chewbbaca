@@ -9,6 +9,90 @@ from bifrostlib.datahandling import SampleComponentReference
 from bifrostlib.datahandling import SampleComponent
 from pathlib import Path
 
+def run_blastn_and_parse(query_fa, db, assembly_sequences):
+    """
+    Runs BLASTN and processes the output on the fly to keep the best hit per locus-contig pair
+    based on sorting criteria, while retaining all hits that are 100% identity and cover the
+    full length for rare cases of the same locus appearing twice in one contig.
+    """
+    blastn_cmd = [
+        'srun', '-p', 'daytime', '-c', '6', '--mem', '25000',
+        'blastn',
+        '-query', query_fa,
+        '-db', db,
+        '-outfmt', '6 qaccver saccver slen pident length mismatch gapopen qstart qend sstart send evalue bitscore',
+        '-num_threads', '6',
+        '-subject_besthit',
+        '-max_target_seqs', '2000000',
+        '-perc_identity', '90',
+        '-max_hsps', '5'
+    ]
+
+    # Dictionary to store the best hit per (locus, contig)
+    best_hits = {}
+    # List to store all full-coverage, 100%-identity hits
+    full_coverage_hits = []
+
+    # Run BLASTN and stream output
+    with subprocess.Popen(blastn_cmd, stdout=subprocess.PIPE, text=True, stderr=subprocess.DEVNULL) as proc:
+        for line in proc.stdout:
+            # Parse the BLAST output line into a dictionary
+            cols = line.strip().split("\t")
+            record = {
+                'qaccver': cols[0],
+                'saccver': cols[1],
+                'slen': int(cols[2]),
+                'pident': float(cols[3]),
+                'length': int(cols[4]),
+                'mismatch': int(cols[5]),
+                'gapopen': int(cols[6]),
+                'qstart': int(cols[7]),
+                'qend': int(cols[8]),
+                'sstart': int(cols[9]),
+                'send': int(cols[10]),
+                'evalue': float(cols[11]),
+                'bitscore': float(cols[12]),
+            }
+
+            # Extract locus from the subject accession (saccver)
+            locus = "_".join(record['saccver'].split("_")[:-1])
+            key = (locus, record['qaccver'])  # Locus-contig combination
+
+            # On-the-fly sorting: Keep the best hit per locus-contig pair
+            if key in best_hits:
+                # Compare current hit with the stored best hit
+                best_hit = best_hits[key]
+                if (
+                    record['pident'] > best_hit['pident'] or  # Higher percent identity
+                    (record['pident'] == best_hit['pident'] and record['bitscore'] > best_hit['bitscore']) or  # Higher bitscore
+                    (record['pident'] == best_hit['pident'] and record['bitscore'] == best_hit['bitscore'] and record['evalue'] < best_hit['evalue'])  # Lower e-value
+                ):
+                    best_hits[key] = record
+            else:
+                # Store this hit as the best for the locus-contig combination
+                best_hits[key] = record
+
+            # Collect full-coverage, 100%-identity hits
+            if record['length'] == record['slen'] and record['pident'] == 100.0:
+                full_coverage_hits.append(record)
+
+    # Collect the final list of hits
+    final_hits = list(best_hits.values())
+
+    # Include all full-coverage hits not already in the final list
+    for hit in full_coverage_hits:
+        if hit not in final_hits:
+            final_hits.append(hit)
+
+    # Process the final hits into allele format
+    alleles = []
+    for hit in final_hits:
+        if hit['length'] / hit['slen'] >= 0.6:
+            alleles.append(process_hit(hit, assembly_sequences))
+
+    return alleles
+
+
 def rule__blast_genecall(input: object, output: object, params: object, log: object) -> None:
     try:
         samplecomponent_ref_json = params.samplecomponent_ref_json
@@ -196,11 +280,12 @@ def process_single_assembly(assembly_path, db, output_dir):
     combined_fasta = os.path.join(output_dir, f'{assembly_name}.fa')
 
     # Run BLAST and parse the output
-    blast_output = os.path.join(output_dir, f'blast_{assembly_name}.out')
-    run_blastn(assembly_path, db, blast_output)
+    alleles = run_blastn_and_parse(assembly_path, db, fasta_sequences)
+    # blast_output = os.path.join(output_dir, f'blast_{assembly_name}.out')
+    # run_blastn(assembly_path, db, blast_output)
     
-    # Parse and extract alleles based on the BLAST results
-    alleles = parse_blast_output(blast_output, fasta_sequences)
+    # # Parse and extract alleles based on the BLAST results
+    # alleles = parse_blast_output(blast_output, fasta_sequences)
     extracted_sequences = extract_subsequences(fasta_sequences, alleles)
     
     # Write extracted sequences to the combined FASTA file

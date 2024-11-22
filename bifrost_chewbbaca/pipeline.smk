@@ -3,6 +3,7 @@ import os
 import sys
 import traceback
 
+from pathlib import Path
 from bifrostlib import common
 from bifrostlib.datahandling import SampleReference
 from bifrostlib.datahandling import Sample
@@ -85,6 +86,7 @@ rule check_requirements:
         samplecomponent
     run:
         if samplecomponent.has_requirements():
+          if not Path(output.check_file).exists():
             with open(output.check_file, "w") as fh:
                 fh.write("")
 
@@ -150,7 +152,7 @@ rule run_chewbbaca_on_genome:
         genome = rules.blast_gene_call.output.gene_calls
     output:
         chewbbaca_results = directory(f"{component['name']}/chewbbaca_results"),
-        results_tsv = f"{component['name']}/chewbbaca_results/output/results_alleles.tsv",
+        #results_tsv = f"{component['name']}/chewbbaca_results/output/results_alleles.tsv",
         chewbbaca_done = f"{component['name']}/chewbbaca_done"
     params:
         samplecomponent_ref_json = samplecomponent.to_reference().json,

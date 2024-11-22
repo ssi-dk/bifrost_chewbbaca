@@ -127,102 +127,37 @@ def rule__blast_genecall(input: object, output: object, params: object, log: obj
         raise
 
 
-def run_blastn(query_fa, db, output_file):
+def process_hit(hit, assembly_sequences):
     """
-    Runs blastn with the specified query and database, and writes the output to a file.
+    Adjusts the start and end positions of a hit and ensures it fits within contig limits.
+    Returns a tuple with adjusted hit details.
     """
-    blastn_cmd = [
-        'blastn',
-        '-query', query_fa,
-        '-db', str(db),
-        '-out', output_file,
-        '-outfmt', '6 qaccver saccver slen pident length mismatch gapopen qstart qend sstart send evalue bitscore',
-        '-num_threads', '6',
-        '-subject_besthit',
-        '-max_target_seqs', '2000000',
-        '-perc_identity',  '90', 
-        '-max_hsps', '5'
-    ]
-    # Suppress warnings by redirecting stderr to /dev/null
-    with open(os.devnull, 'w') as devnull:
-        subprocess.run(blastn_cmd, check=True)#, stderr=devnull)
+    alleles=[]
+    qaccver, saccver, slen, qlen, sstart, send, qstart, qend = (
+        hit['qaccver'], hit['saccver'], int(hit['slen']), int(hit['length']),
+        int(hit['sstart']), int(hit['send']), int(hit['qstart']), int(hit['qend'])
+    )
 
+    # Ensure that the smallest position is taken as start and the largest as end
+    subject_start = min(sstart, send)
+    subject_end = max(sstart, send)
 
-def parse_blast_output(blast_output_file, assembly_sequences):
-    """
-    Parses the BLAST output, filters the best hit per loci, adjusts start and end positions,
-    and ensures at least 60% of the subject is covered.
-    Returns a list of tuples containing (qaccver, adjusted_qstart, adjusted_qend, saccver, slen, qlen).
-    """
-    columns = ['qaccver', 'saccver', 'slen', 'pident', 'length', 'mismatch', 
-               'gapopen', 'qstart', 'qend', 'sstart', 'send', 'evalue', 'bitscore']
+    # Adjust start and end points to ensure they're within contig limits
+    contig_length = len(assembly_sequences[qaccver])
 
-    # Load BLAST output into DataFrame
-    blast_results = pd.read_csv(blast_output_file, sep='\t', header=None, names=columns)
-    
-    # Extract loci from the subject accession (saccver) by removing the allele suffix
-    blast_results['loci'] = blast_results['saccver'].apply(lambda x: "_".join(x.split("_")[:-1]))
+    if subject_start != 1:
+        qstart += subject_start - 1  # Adjust qstart if the alignment doesn't start at position 1
+    if subject_end != slen:
+        qend += slen - subject_end  # Adjust qend if the alignment doesn't end at the full length
+        qend = min(qend, contig_length)
 
-    # Sort the results based on percent identity, bitscore, and e-value
-    blast_results.sort_values(by=['loci', 'pident', 'bitscore', 'evalue'], 
-                              ascending=[True, False, False, True], inplace=True)
+    # Convert qstart to 0-based for BED format and adjust qstart/qend if necessary
+    qstart -= 1
+    qstart = min(qstart, qend)
+    qend = max(qstart, qend)
 
-    # List to store the adjusted results
-    alleles = []
+    return qaccver, qstart, qend, saccver, slen, qlen
 
-    # Group by loci to analyze the best hits
-    grouped_hits = blast_results.groupby('loci')
-
-    for loci, group in grouped_hits:
-        # Get the best hit for each unique contig by dropping duplicates
-        best_hits_per_contig = group.drop_duplicates(subset='qaccver', keep='first')
-
-        # Collect hits that meet the criteria
-        hits_to_include = []
-
-        # Add best hits to the hits_to_include list if they meet the coverage requirement
-        for index, best_hit in best_hits_per_contig.iterrows():
-            # Ensure at least 60% of the subject length is covered
-            if best_hit['length'] / best_hit['slen'] >= 0.6:
-                hits_to_include.append(best_hit)  # Include the best hit if it meets the coverage requirement
-
-        # Now check for additional hits with 100% identity and covering the entire subject length
-        for index, row in group.iterrows():
-            # Check if this hit is not already in the hits_to_include by comparing relevant columns
-            if (row['pident'] == 100.0 and 
-                row['length'] == row['slen'] and 
-                not any((row['qaccver'] == h['qaccver']) and (row['saccver'] == h['saccver']) for h in hits_to_include)):
-                hits_to_include.append(row)
-
-        # Process each hit, adjusting start and end positions
-        for hit in hits_to_include:
-            qaccver, saccver, slen, qlen, sstart, send, qstart, qend = (
-                hit['qaccver'], hit['saccver'], int(hit['slen']), int(hit['length']), 
-                int(hit['sstart']), int(hit['send']), int(hit['qstart']), int(hit['qend'])
-            )
-
-            # Ensure that the smallest position is taken as start and the largest as end
-            subject_start = min(sstart, send)
-            subject_end = max(sstart, send)
-
-            # Adjust start and end points to ensure they're within contig limits
-            contig_length = len(assembly_sequences[qaccver])
-
-            if subject_start != 1:
-                qstart += subject_start - 1  # Adjust qstart if the alignment doesn't start at position 1
-            if subject_end != slen:
-                qend += slen - subject_end   # Adjust qend if the alignment doesn't end at the full length
-                qend = min(qend, contig_length)
-
-            # Convert qstart to 0-based for BED format and adjust qstart/qend if necessary
-            qstart -= 1
-            qstart = min(qstart, qend)
-            qend = max(qstart, qend)
-
-            # Append the processed hit to the alleles list
-            alleles.append((qaccver, qstart, qend, saccver, slen, qlen))
-
-    return alleles
 
 
 def reverse_complement(seq):

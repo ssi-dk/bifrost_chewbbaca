@@ -28,7 +28,8 @@ def extract_cgmlst(cgmlst: Category, results: Dict, component_name: str) -> None
         lines = input.readlines()
         lines = [i.strip() for i in lines]
         locus_names = lines[0].split()[1:]
-        allele_values = lines[1].split()[1:]
+        allele_values = [int(x) if x.isdigit() else x for x in lines[1].split()[1:]]
+
         allele_dict = {
             locus_names[i]: allele_values[i] for i in range(len(locus_names))
         }

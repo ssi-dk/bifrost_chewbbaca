@@ -171,7 +171,7 @@ def reverse_complement_check(seq):
     """
     Checks if the sequence should be reverse complemented based on its starting pattern.
     """
-    return seq.startswith(('tta', 'tca', 'cta'))
+    return seq.lower().startswith(('tta', 'tca', 'cta'))
 
 
 def extract_subsequences(fasta_sequences, alleles):

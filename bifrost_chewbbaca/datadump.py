@@ -28,7 +28,8 @@ def extract_cgmlst(cgmlst: Category, results: Dict, component_name: str) -> None
         lines = input.readlines()
         lines = [i.strip() for i in lines]
         locus_names = lines[0].split()[1:]
-        allele_values = lines[1].split()[1:]
+        allele_values = [int(x) if x.isdigit() else x for x in lines[1].split()[1:]]
+
         allele_dict = {
             locus_names[i]: allele_values[i] for i in range(len(locus_names))
         }
@@ -90,11 +91,6 @@ def extract_digits_from_component_version(component_str):
     version_group = re.match(version_re, component_str).groups()[0]
     version_digits = tuple([int(i) for i in version_group.split(".") if i.isdigit()])
     return version_digits
-# def extract_digits_from_component_version(component_str):
-#     version_re = re.compile(".*__(v.*?)(__)?.*$")
-#     version_group = re.match(version_re, component_str).groups()[0]
-#     version_digits = int("".join([i for i in version_group if i.isdigit()]))
-#     return version_digits
 
 
 datadump(

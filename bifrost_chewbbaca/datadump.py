@@ -11,7 +11,7 @@ from pathlib import Path
 
 def call_percent(calls):
     return round(
-        len([x for x in calls if x.isdigit() or x.startswith("INF")])
+        len([x for x in calls if isinstance(x,int) or x.isdigit() or x.startswith("INF")])
         / len(calls)
         * 100,
         2,

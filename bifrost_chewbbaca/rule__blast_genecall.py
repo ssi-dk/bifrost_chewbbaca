@@ -113,7 +113,7 @@ def rule__blast_genecall(input: object, output: object, params: object, log: obj
         process_single_assembly(
             assembly_path=input.genome, 
             db=Path(params.chewbbaca_blastdb)/component["options"]["chewbbaca_species_mapping"]['blastdb'][detected_species],
-            output_dir=output.gene_call_results)
+            output_file=output.gene_calls)
 
         # process_loci_parallel(
         #     component["options"]["chewbbaca_species_mapping"]['blastdb'][detected_species],
@@ -203,7 +203,7 @@ def read_fasta(file_path):
     return {record.id: str(record.seq) for record in SeqIO.parse(file_path, "fasta")}
 
 
-def process_single_assembly(assembly_path, db, output_dir):
+def process_single_assembly(assembly_path, db, output_file):
     """
     Processes a single assembly against the specified database and writes the combined alleles to a single file.
     """
@@ -211,7 +211,6 @@ def process_single_assembly(assembly_path, db, output_dir):
 
     # Read the assembly sequences into memory once per assembly
     fasta_sequences = read_fasta(assembly_path)
-    combined_fasta = os.path.join(output_dir, f'{assembly_name}.fa')
 
     # Run BLAST and parse the output
     alleles = run_blastn_and_parse(assembly_path, db, fasta_sequences)
@@ -223,7 +222,7 @@ def process_single_assembly(assembly_path, db, output_dir):
     extracted_sequences = extract_subsequences(fasta_sequences, alleles)
     
     # Write extracted sequences to the combined FASTA file
-    with open(combined_fasta, 'w') as combined_file:
+    with open(output_file, 'w') as combined_file:
         for header, subseq in extracted_sequences:
             combined_file.write(f"{header}\n{subseq}\n")
 

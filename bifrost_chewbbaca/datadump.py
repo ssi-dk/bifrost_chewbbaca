@@ -18,6 +18,12 @@ def call_percent(calls):
     )
 
 
+def multiple_alleles(calls):
+    return round(
+        len([x for x in calls if x.startswith("NIPH") or x.startswith("NIPHEM")])
+    )
+
+
 def extract_cgmlst(cgmlst: Category, results: Dict, component_name: str) -> None:
     output_folder = Path(component_name, "chewbbaca_results", "output")
     # chewbacca output gets thrown into a folder called results_<yearmonthday>someothertext
@@ -34,6 +40,7 @@ def extract_cgmlst(cgmlst: Category, results: Dict, component_name: str) -> None
             locus_names[i]: allele_values[i] for i in range(len(locus_names))
         }
         cgmlst["summary"]["call_percent"] = call_percent(allele_values)
+        cgmlst["summary"]["multiple_alleles"] = multiple_alleles(allele_values)
     results[file_key] = allele_dict
     cgmlst["report"]["alleles"] = allele_dict
     cgmlst["report"]["loci"] = locus_names

@@ -74,6 +74,7 @@ class ChewbbacaAlleleCall:
         self.inputdir = self.output / "input"
         self.inputdir.mkdir(parents=True)
         Path(self.inputdir / (self.genome.stem+'.fasta')).symlink_to(self.genome.absolute())
+        self.schema.write_schema(self.output / "schema")
 
     def run(self):
         cmd = [
@@ -102,6 +103,11 @@ class Schema:
             self.schema_home, f"{self.mapping[self.species_name]}"
         )
         return self.schema_dir
+    
+    def write_schema(self, filename) -> None:
+        with open(filename, "w") as fh:
+            fh.write(self.schema_dir.name)
+
 
 
 

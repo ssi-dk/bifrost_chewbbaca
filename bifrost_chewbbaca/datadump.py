@@ -2,11 +2,13 @@ from bifrostlib import common
 from bifrostlib.datahandling import Sample
 from bifrostlib.datahandling import SampleComponentReference
 from bifrostlib.datahandling import SampleComponent
+from bifrostlib.datahandling import Component
 from bifrostlib.datahandling import Category
 from typing import Dict
 import os
 import re
 from pathlib import Path
+from hashlib import md5
 
 
 def call_percent(calls):
@@ -23,6 +25,14 @@ def multiple_alleles(calls):
         len([x for x in calls if x.startswith("NIPH") or x.startswith("NIPHEM")])
     )
 
+def schema_digest(locus_names, alg=md5):
+    hash = alg("\t".join(locus_names).encode())
+    return hash.hexdigest()
+
+def schema_name(component_name):
+    filename = Path(component_name, "chewbbaca_results", "schema")
+    with open(filename, 'r') as fh:
+        return fh.read().strip()
 
 def extract_cgmlst(cgmlst: Category, results: Dict, component_name: str) -> None:
     output_folder = Path(component_name, "chewbbaca_results", "output")
@@ -42,6 +52,8 @@ def extract_cgmlst(cgmlst: Category, results: Dict, component_name: str) -> None
         cgmlst["summary"]["call_percent"] = call_percent(allele_values)
         cgmlst["summary"]["multiple_alleles"] = multiple_alleles(allele_values)
     results[file_key] = allele_dict
+    
+    cgmlst["report"]["schema"] = {"name": schema_name(component_name), "digest": schema_digest(locus_names)}
     cgmlst["report"]["alleles"] = allele_dict
     cgmlst["report"]["loci"] = locus_names
 
@@ -50,6 +62,7 @@ def datadump(samplecomponent_ref_json: Dict):
     samplecomponent_ref = SampleComponentReference(value=samplecomponent_ref_json)
     samplecomponent = SampleComponent.load(samplecomponent_ref)
     sample = Sample.load(samplecomponent.sample)
+    component = Component.load(samplecomponent.component)
     cgmlst = samplecomponent.get_category("cgmlst")
     if cgmlst is None:
         cgmlst = Category(
@@ -59,7 +72,8 @@ def datadump(samplecomponent_ref_json: Dict):
                     "id": samplecomponent["component"]["_id"],
                     "name": samplecomponent["component"]["name"],
                 },
-                "summary": {"call_percent": None},
+                "summary": {"call_percent": None,
+                            "multiple_alleles": None},
                 "report": {
                     "loci": [],
                     "alleles": {},

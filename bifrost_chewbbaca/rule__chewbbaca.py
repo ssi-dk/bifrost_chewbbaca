@@ -106,7 +106,7 @@ class Schema:
     
     def write_schema(self, filename) -> None:
         with open(filename, "w") as fh:
-            fh.write(self.schema_dir.name)
+            fh.write(self.path().name)
 
 
 

@@ -54,6 +54,7 @@ def extract_cgmlst(cgmlst: Category, results: Dict, component_name: str) -> None
     
     cgmlst["report"]["schema"] = {"name": schema_name(component_name), "digest": schema_digest(locus_names)}
     cgmlst["report"]["alleles"] = allele_dict
+    cgmlst["report"]["allele_array"] = allele_values
     cgmlst["report"]["loci"] = locus_names
 
 
@@ -77,6 +78,7 @@ def datadump(samplecomponent_ref_json: Dict):
                     "schema":{},
                     "loci": [],
                     "alleles": {},
+                    "allele_array": [],
                 },
             }
         )

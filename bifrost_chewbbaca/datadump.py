@@ -75,6 +75,7 @@ def datadump(samplecomponent_ref_json: Dict):
                 "summary": {"call_percent": None,
                             "multiple_alleles": None},
                 "report": {
+                    "schema":{},
                     "loci": [],
                     "alleles": {},
                 },

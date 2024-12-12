@@ -21,9 +21,8 @@ def call_percent(calls):
 
 
 def multiple_alleles(calls):
-    return round(
-        len([x for x in calls if x.startswith("NIPH") or x.startswith("NIPHEM")])
-    )
+    multi_allele_codes = set("NIPH","NIPHEM")
+    return len([x for x in calls if x in multi_allele_codes])
 
 def schema_digest(locus_names, alg=md5):
     hash = alg("\t".join(locus_names).encode())

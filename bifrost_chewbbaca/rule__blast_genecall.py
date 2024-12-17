@@ -9,7 +9,7 @@ from bifrostlib.datahandling import SampleComponentReference
 from bifrostlib.datahandling import SampleComponent
 from pathlib import Path
 
-def run_blastn_and_parse(query_fa, db, assembly_sequences):
+def run_blastn_and_parse(query_fa, db, assembly_sequences,log):
     """
     Runs BLASTN and processes the output on the fly to keep the best hit per locus-contig pair
     based on sorting criteria, while retaining all hits that are 100% identity and cover the
@@ -33,7 +33,7 @@ def run_blastn_and_parse(query_fa, db, assembly_sequences):
     full_coverage_hits = []
 
     # Run BLASTN and stream output
-    with subprocess.Popen(blastn_cmd, stdout=subprocess.PIPE, text=True, stderr=subprocess.DEVNULL) as proc:
+    with subprocess.Popen(blastn_cmd, stdout=subprocess.PIPE, text=True, stderr=open(log.err_file, "w+")) as proc:
         for line in proc.stdout:
             # Parse the BLAST output line into a dictionary
             cols = line.strip().split("\t")
@@ -113,7 +113,7 @@ def rule__blast_genecall(input: object, output: object, params: object, log: obj
         process_single_assembly(
             assembly_path=input.genome, 
             db=Path(params.chewbbaca_blastdb)/component["options"]["chewbbaca_species_mapping"]['blastdb'][detected_species],
-            output_file=output.gene_calls)
+            output_file=output.gene_calls,log=log)
 
         # process_loci_parallel(
         #     component["options"]["chewbbaca_species_mapping"]['blastdb'][detected_species],
@@ -203,7 +203,7 @@ def read_fasta(file_path):
     return {record.id: str(record.seq) for record in SeqIO.parse(file_path, "fasta")}
 
 
-def process_single_assembly(assembly_path, db, output_file):
+def process_single_assembly(assembly_path, db, output_file, log):
     """
     Processes a single assembly against the specified database and writes the combined alleles to a single file.
     """
@@ -213,7 +213,7 @@ def process_single_assembly(assembly_path, db, output_file):
     fasta_sequences = read_fasta(assembly_path)
 
     # Run BLAST and parse the output
-    alleles = run_blastn_and_parse(assembly_path, db, fasta_sequences)
+    alleles = run_blastn_and_parse(assembly_path, db, fasta_sequences, log=log)
     # blast_output = os.path.join(output_dir, f'blast_{assembly_name}.out')
     # run_blastn(assembly_path, db, blast_output)
     

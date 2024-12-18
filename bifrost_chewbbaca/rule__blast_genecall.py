@@ -33,10 +33,11 @@ def run_blastn_and_parse(query_fa, db, assembly_sequences,log):
     full_coverage_hits = []
 
     # Run BLASTN and stream output
-    with subprocess.Popen(blastn_cmd, stdout=subprocess.PIPE, text=True, stderr=open(log.err_file, "w+")) as proc:
+    blast_error_file = "blast_error_file"
+    with subprocess.Popen(blastn_cmd, stdout=subprocess.PIPE, text=True, stderr=open(blast_error_file, "w+")) as proc:
         stdout = proc.communicate()
         if proc.returncode != 0:
-            raise RuntimeError(f"Command {' '.join([str(x) for x in blastn_cmd])} failed with code {proc.returncode}.\nCheck the logs in {log.err_file}")
+            raise RuntimeError(f"Command {' '.join([str(x) for x in blastn_cmd])} failed with code {proc.returncode}.\nCheck the logs in {blast_error_file}")
         for line in stdout:
             # Parse the BLAST output line into a dictionary
             cols = line.strip().split("\t")

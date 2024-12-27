@@ -26,7 +26,7 @@ def run_blastn_and_parse(query_fa, db, assembly_sequences,log):
         '-perc_identity', '90',
         '-max_hsps', '5'
     ]
-
+    print(f"BLAST GENE COMMAND {blastn_cmd}")
     # Dictionary to store the best hit per (locus, contig)
     best_hits = {}
     # List to store all full-coverage, 100%-identity hits
@@ -35,28 +35,44 @@ def run_blastn_and_parse(query_fa, db, assembly_sequences,log):
     # Run BLASTN and stream output
     blast_error_file = "blast_error_file"
     with subprocess.Popen(blastn_cmd, stdout=subprocess.PIPE, text=True, stderr=open(blast_error_file, "w+")) as proc:
-        stdout = proc.communicate()
+        stdout,err = proc.communicate()
         if proc.returncode != 0:
             raise RuntimeError(f"Command {' '.join([str(x) for x in blastn_cmd])} failed with code {proc.returncode}.\nCheck the logs in {blast_error_file}")
-        for line in stdout:
+        
+        line_no = 0
+        
+        for line in stdout.splitlines():
+        #for line in stdout:
             # Parse the BLAST output line into a dictionary
+            #print(f"DEBUG: {line} and {line.strip().split('\t')}")  # Add this to debug
             cols = line.strip().split("\t")
-            record = {
-                'qaccver': cols[0],
-                'saccver': cols[1],
-                'slen': int(cols[2]),
-                'pident': float(cols[3]),
-                'length': int(cols[4]),
-                'mismatch': int(cols[5]),
-                'gapopen': int(cols[6]),
-                'qstart': int(cols[7]),
-                'qend': int(cols[8]),
-                'sstart': int(cols[9]),
-                'send': int(cols[10]),
-                'evalue': float(cols[11]),
-                'bitscore': float(cols[12]),
-            }
+            line_no = line_no + 1 
 
+            if len(cols) != 13:
+                print(f"WARNING: Skipping malformed line: {line.strip()}")
+                continue
+            
+            try:
+                record = {
+                'qaccver': cols[0],
+                    'saccver': cols[1],
+                    'slen': int(cols[2]),
+                    'pident': float(cols[3]),
+                    'length': int(cols[4]),
+                    'mismatch': int(cols[5]),
+                    'gapopen': int(cols[6]),
+                    'qstart': int(cols[7]),
+                    'qend': int(cols[8]),
+                    'sstart': int(cols[9]),
+                    'send': int(cols[10]),
+                    'evalue': float(cols[11]),
+                    'bitscore': float(cols[12]),
+                }
+            except (ValueError, IndexError) as e:
+                print(f"ERROR: Skipping line due to parsing error: {line.strip()} ({e})")
+                continue
+            
+            print(f"line number is {line_no}")
             # Extract locus from the subject accession (saccver)
             locus = "_".join(record['saccver'].split("_")[:-1])
             key = (locus, record['qaccver'])  # Locus-contig combination

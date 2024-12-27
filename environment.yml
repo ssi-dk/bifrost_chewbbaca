@@ -6,6 +6,8 @@ dependencies:
   - snakemake-minimal==8.10.6
   - blast>=2.16.0
   - chewbbaca>=3.3.10
+  - blat>=36
+  - mmseqs2>=y16.747c6
   - pip
   - pip:
     - jsonschema>4.18.0a1

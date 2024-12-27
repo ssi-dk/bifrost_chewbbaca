@@ -8,6 +8,7 @@ from bifrostlib.datahandling import Component, Sample
 from bifrostlib.datahandling import SampleComponentReference
 from bifrostlib.datahandling import SampleComponent
 from pathlib import Path
+import csv
 
 def parse_blat_output(output_tsv, assembly_sequences):
     """
@@ -26,17 +27,17 @@ def parse_blat_output(output_tsv, assembly_sequences):
             record = {
                 'qaccver': cols[0],
                 'saccver': cols[1],
-                'slen': int(cols[4]),
-                'pident': float(cols[3]),
-                'length': int(cols[4]),
-                'mismatch': int(cols[5]),
-                'gapopen': int(cols[6]),
-                'qstart': int(cols[7]),
-                'qend': int(cols[8]),
-                'sstart': int(cols[9]),
-                'send': int(cols[10]),
-                'evalue': float(cols[11]),
-                'bitscore': float(cols[12]),
+                'slen': int(cols[3]),
+                'pident': float(cols[2]),
+                'length': int(cols[3]),
+                'mismatch': int(cols[4]),
+                'gapopen': int(cols[5]),
+                'qstart': int(cols[6]),
+                'qend': int(cols[7]),
+                'sstart': int(cols[8]),
+                'send': int(float(cols[9])),
+                'evalue': float(cols[10]),
+                'bitscore': float(cols[11]),
             }
 
             # Extract locus from the subject accession (saccver)
@@ -123,7 +124,7 @@ def rule__blat_genecall(input: object, output: object, params: object, log: obje
         #     output_dir=output.gene_call_results, combined_dir, assemblies_dir):
         process_single_assembly(
             assembly_path=input.genome, 
-            db=params.blat_db_fasta #Path(params.chewbbaca_blastdb)/component["options"]["chewbbaca_species_mapping"]['blastdb'][detected_species],
+            db=params.chewbbaca_blastdb,
             output_file=output.gene_calls,log=log)
 
         # process_loci_parallel(
@@ -214,7 +215,7 @@ def read_fasta(file_path):
     return {record.id: str(record.seq) for record in SeqIO.parse(file_path, "fasta")}
 
 
-def process_single_assembly(assembly_path, db_fasta, output_file, log):
+def process_single_assembly(assembly_path, db, output_file, log):
     """
     Processes a single assembly against the specified database and writes the combined alleles to a single file.
     """
@@ -225,7 +226,7 @@ def process_single_assembly(assembly_path, db_fasta, output_file, log):
 
     # Run BLAST and parse the output
     output_tsv = os.path.join(os.path.dirname(output_file), f"blat_{assembly_name}.out")
-    alleles = run_blat_and_parse(assembly_path, db_fasta, output_tsv, fasta_sequences)
+    alleles = run_blat_and_parse(assembly_path, db, output_tsv, fasta_sequences)
 
     #alleles = run_blast_and_parse(assembly_path, db, fasta_sequences, log=log)
    

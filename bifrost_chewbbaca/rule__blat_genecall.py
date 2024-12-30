@@ -12,7 +12,7 @@ import csv
 
 def parse_blat_output(output_tsv, assembly_sequences):
     """
-    processes the output after running the blast command
+    processes the output after running the blat command
     """
     
     # Dictionary to store the best hit per (locus, contig)
@@ -124,7 +124,7 @@ def rule__blat_genecall(input: object, output: object, params: object, log: obje
         #     output_dir=output.gene_call_results, combined_dir, assemblies_dir):
         process_single_assembly(
             assembly_path=input.genome, 
-            db=params.chewbbaca_blastdb,
+            db=params.chewbbaca_blatdb,
             output_file=output.gene_calls,log=log)
 
         # process_loci_parallel(
@@ -224,7 +224,7 @@ def process_single_assembly(assembly_path, db, output_file, log):
     # Read the assembly sequences into memory once per assembly
     fasta_sequences = read_fasta(assembly_path)
 
-    # Run BLAST and parse the output
+    # Run BLAT and parse the output
     output_tsv = os.path.join(os.path.dirname(output_file), f"blat_{assembly_name}.out")
     alleles = run_blat_and_parse(assembly_path, db, output_tsv, fasta_sequences)
 

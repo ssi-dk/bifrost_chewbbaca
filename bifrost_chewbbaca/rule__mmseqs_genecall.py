@@ -12,7 +12,7 @@ import csv
 
 def parse_mmseqs_output(output_tsv, assembly_sequences):
     """
-    processes the output after running the blast command
+    processes the output after running the mmseqs command
     """
     
     # Dictionary to store the best hit per (locus, contig)
@@ -20,7 +20,7 @@ def parse_mmseqs_output(output_tsv, assembly_sequences):
     # List to store all full-coverage, 100%-identity hits
     full_coverage_hits = []
 
-    # Open and parse the BLAT output TSV file
+    # Open and parse the mmseqs output TSV file
     with open(output_tsv, 'r') as file:
         reader = csv.reader(file, delimiter='\t')
         for cols in reader:
@@ -82,7 +82,7 @@ def run_mmseqs_and_parse(query_fa, db_fa, output_tsv, assembly_sequences):
     """
     Runs mmseqs and processes the outputs.
     """
-    # Define the BLAT command
+    # Define the mmseqs command
     mmseqs_cmd = [
         "mmseqs easy-search",
         db_fa,
@@ -96,17 +96,17 @@ def run_mmseqs_and_parse(query_fa, db_fa, output_tsv, assembly_sequences):
     ]
     # mmseqs easy-search assemblatron__v2.3.3/test_cdiff_single___2405W4378.fasta all_Clostridioides_loci.fa alnRes.tsv tmp --search-type 4 --format-mode 0 --format-output "query,target,tlen,pident,alnlen,mismatch,gapopen,qstart,qend,tstart,tend,evalue,bits" --min-seq-id 0.9
 
-    # Run BLAT
+    # Run mmseqs
     try:
-        subprocess.run(blat_cmd, check=True, text=True)
+        subprocess.run(mmseqs_cmd, check=True, text=True)
     except subprocess.CalledProcessError as e:
-        raise RuntimeError(f"BLAT command failed with error: {e}")
+        raise RuntimeError(f"mmseqs command failed with error: {e}")
     
-    # Parse the BLAT output
-    return parse_blat_output(output_tsv, assembly_sequences)
+    # Parse the mmseqs output
+    return parse_mmseqs_output(output_tsv, assembly_sequences)
 
 
-def rule__blat_genecall(input: object, output: object, params: object, log: object) -> None:
+def rule__mmseqs_genecall(input: object, output: object, params: object, log: object) -> None:
     try:
         samplecomponent_ref_json = params.samplecomponent_ref_json
         samplecomponent_ref = SampleComponentReference(value=samplecomponent_ref_json)
@@ -126,7 +126,7 @@ def rule__blat_genecall(input: object, output: object, params: object, log: obje
         #     output_dir=output.gene_call_results, combined_dir, assemblies_dir):
         process_single_assembly(
             assembly_path=input.genome, 
-            db=params.chewbbaca_blastdb,
+            db=params.chewbbaca_mmseqs_db,
             output_file=output.gene_calls,log=log)
 
         # process_loci_parallel(
@@ -227,8 +227,8 @@ def process_single_assembly(assembly_path, db, output_file, log):
     fasta_sequences = read_fasta(assembly_path)
 
     # Run BLAST and parse the output
-    output_tsv = os.path.join(os.path.dirname(output_file), f"blat_{assembly_name}.out")
-    alleles = run_blat_and_parse(assembly_path, db, output_tsv, fasta_sequences)
+    output_tsv = os.path.join(os.path.dirname(output_file), f"mmseqs_{assembly_name}.out")
+    alleles = run_mmseqs_and_parse(assembly_path, db, output_tsv, fasta_sequences)
 
     #alleles = run_blast_and_parse(assembly_path, db, fasta_sequences, log=log)
    
@@ -244,4 +244,4 @@ def process_single_assembly(assembly_path, db, output_file, log):
         for header, subseq in extracted_sequences:
             combined_file.write(f"{header}\n{subseq}\n")
 
-rule__blat_genecall(snakemake.input, snakemake.output, snakemake.params, snakemake.log)
+rule__mmseqs_genecall(snakemake.input, snakemake.output, snakemake.params, snakemake.log)

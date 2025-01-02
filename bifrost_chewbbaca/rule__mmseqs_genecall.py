@@ -78,23 +78,27 @@ def parse_mmseqs_output(output_tsv, assembly_sequences):
 
     return alleles
 
-def run_mmseqs_and_parse(query_fa, db_fa, output_tsv, assembly_sequences):
+def run_mmseqs_and_parse(query_fa, db, output_tsv, assembly_sequences):
     """
     Runs mmseqs and processes the outputs.
     """
     # Define the mmseqs command
     mmseqs_cmd = [
-        "mmseqs easy-search",
-        db_fa,
+        "mmseqs",
+        "easy-linsearch",
         query_fa,
+        db,
         output_tsv,
         "tmp",
-        "--search-type",'4',
-        "--format-mode",'0'
-        "-format-output",'query,target,tlen,pident,alnlen,mismatch,gapopen,qstart,qend,tstart,tend,evalue,bits'
-        "--min-seq-id",0.9
+        "--search-type",'3',
+        "--format-mode",'0',
+        "--format-output",'query,target,tlen,pident,alnlen,mismatch,gapopen,qstart,qend,tstart,tend,evalue,bits',
+        "--min-seq-id",'0.9',
+        "--threads",'6',
+        "--remove-tmp-files",'1',
     ]
-    # mmseqs easy-search assemblatron__v2.3.3/test_cdiff_single___2405W4378.fasta all_Clostridioides_loci.fa alnRes.tsv tmp --search-type 4 --format-mode 0 --format-output "query,target,tlen,pident,alnlen,mismatch,gapopen,qstart,qend,tstart,tend,evalue,bits" --min-seq-id 0.9
+    print(f"msmeqs commands {mmseqs_cmd}")
+    #mmseqs easy-linsearch assemblatron__v2.3.3/test_cdiff_single___2405W4378.fasta all_Clostridioides_loci_db alnRes.tsv tmp --search-type 3 --threads 6 --min-seq-id 0.9 --remove-tmp-files 1 --format-mode 0 --format-output "query,target,qlen,pident,alnlen,mismatch,gapopen,qstart,qend,tstart,tend,evalue,bits"
 
     # Run mmseqs
     try:

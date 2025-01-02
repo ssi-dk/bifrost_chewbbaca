@@ -119,6 +119,8 @@ rule blat_gene_call:
         gene_call_results = directory(f"{component['name']}/blat_gene_call_results"),
         gene_calls = f"{component['name']}/blat_gene_call_results/gene_calls.fa",
         gene_call_done = f"{component['name']}/blat_gene_call_done"
+    message:
+        f"Running step:{rule_name}, outputs: {component['name']}/blat_gene_call_results"
     script:
         os.path.join(os.path.dirname(workflow.snakefile), "rule__blat_genecall.py")
 

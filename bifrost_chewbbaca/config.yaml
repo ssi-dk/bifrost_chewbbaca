@@ -49,7 +49,24 @@ options:
       Salmonella enterica: "all_salm_loci_blastdb"
       Listeria monocytogenes: "all_listeria_loci_blastdb"
       Clostridioides difficile: "all_cdiff_loci_blastdb"
-      
+    blatdb_2bit:
+      Campylobacter jejuni: "all_campy_loci.2bit"
+      Campylobacter coli: "all_campy_loci.2bit"
+      Escherichia coli: "all_coli_loci.2bit"
+      Shigella sonnei: "all_coli_loci.2bit"
+      Shigella flexneri: "all_coli_loci.2bit"
+      Salmonella enterica: "all_salm_loci.2bit"
+      Listeria monocytogenes: "all_listeria_loci.2bit"
+      Clostridioides difficile: "all_cdiff_loci.2bit"
+    blatdb_fa:
+      Campylobacter jejuni: "all_campy_loci.fa"
+      Campylobacter coli: "all_campy_loci.fa"
+      Escherichia coli: "all_coli_loci.fa"
+      Shigella sonnei: "all_coli_loci.fa"
+      Shigella flexneri: "all_coli_loci.fa"
+      Salmonella enterica: "all_salm_loci.fa"
+      Listeria monocytogenes: "all_listeria_loci.fa"
+      Clostridioides difficile: "all_cdiff_loci.fa"      
 
 #---------------------------------------------------------------------------------------------------
 
@@ -57,6 +74,7 @@ options:
 resources:
   schemes: "resources/schemes/"
   blastdb: "resources/blastdb/"
+  blatdb_2bit: "resources/blatdb/"
 #---------------------------------------------------------------------------------------------------
 
 #-Requirements to run component---------------------------------------------------------------------

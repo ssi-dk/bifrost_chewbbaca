@@ -74,7 +74,8 @@ options:
 resources:
   schemes: "resources/schemes/"
   blastdb: "resources/blastdb/"
-  blatdb_2bit: "resources/blatdb/"
+  blatdb_2bit: "resources/blatdb_2bit/"
+  blatdb_fa: "resources/blatdb_fa/"
 #---------------------------------------------------------------------------------------------------
 
 #-Requirements to run component---------------------------------------------------------------------

@@ -173,10 +173,10 @@ def process_hit(hit, assembly_sequences):
 
     # Convert qstart to 0-based for BED format and adjust qstart/qend if necessary
     qstart -= 1
-    qstart = min(qstart, qend)
-    qend = max(qstart, qend)
+    query_start = min(qstart, qend)
+    query_end = max(qstart, qend)
 
-    return qaccver, qstart, qend, saccver, slen, qlen
+    return qaccver, query_start, query_end, saccver, slen, qlen
 
 
 

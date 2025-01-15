@@ -21,7 +21,7 @@ def run_blat_and_parse(query_fa, db, assembly_sequences,log):
         'blat',
         db,
         query_fa,
-        stdout,
+        'stdout',
         "-minIdentity=90",
         "-t=dna",
         "-q=dna",
@@ -35,21 +35,25 @@ def run_blat_and_parse(query_fa, db, assembly_sequences,log):
 
     # Run BLAT and stream output
     blat_error_file = "blat_error_file"
+    print("blat error file created")
     with subprocess.Popen(blat_cmd, stdout=subprocess.PIPE, text=True, stderr=open(blat_error_file, "w+")) as proc:
+        print("inside subprocesses")
         stdout,err = proc.communicate()
+        #print(stdout)
         if proc.returncode != 0:
             raise RuntimeError(f"Command {' '.join([str(x) for x in blat_cmd])} failed with code {proc.returncode}.\nCheck the logs in {blat_error_file}")
         
         line_no = 0
         
         for line in stdout.splitlines():
-        #for line in stdout:
+            print(f"line no {line_no} is equal to {line}")
+            #for line in stdout:
             # Parse the BLAST output line into a dictionary
-            #print(f"DEBUG: {line} and {line.strip().split('\t')}")  # Add this to debug
+            # print(f"DEBUG: {line} and {line.strip().split('\t')}")  # Add this to debug
             cols = line.strip().split("\t")
             line_no = line_no + 1 
 
-            if len(cols) != 13:
+            if len(cols) != 12: #slen and length is set as same column, so differs from the 13 from blast
                 print(f"WARNING: Skipping malformed line: {line.strip()}")
                 continue
             
@@ -125,12 +129,14 @@ def rule__blat_genecall(input: object, output: object, params: object, log: obje
         # resources_dir = component['resources']['schemes']
         species_detection = sample.get_category("species_detection")
         detected_species = species_detection["summary"]["detected_species"]
-        
+        print(f"species detection {species_detection}\n")
+        print(f"detected species {detected_species}\n\n")
         print(f"testing config file {Path(params.chewbbaca_blatdb)}\n")
         print(f"component 1 {component['options']['chewbbaca_species_mapping']}\n")
         print(f"component params {params.chewbbaca_blatdb}\n\n")
-        print(f"check test 2 {component['options']['chewbbaca_species_mapping']['blatdb_2bit']}")
-        print(f"path component {Path(params.chewbbaca_blatdb)/component['options']['chewbbaca_species_mapping']}\n\n")
+        print(f"check test 2 {component['options']['chewbbaca_species_mapping']['blatdb_2bit']}\n\n")
+        print(f"used blat database {component['options']['chewbbaca_species_mapping']['blatdb_2bit'][detected_species]}\n\n")
+        #print(f"path component {Path(params.chewbbaca_blatdb)/component['options']['chewbbaca_species_mapping']['blatdb_2bit']}\n\n")
         os.makedirs(output.gene_call_results, exist_ok=True)
         # process_single_assembly(
         #     assembly_file=input.genome, 
@@ -179,10 +185,10 @@ def process_hit(hit, assembly_sequences):
 
     # Convert qstart to 0-based for BED format and adjust qstart/qend if necessary
     qstart -= 1
-    qstart = min(qstart, qend)
-    qend = max(qstart, qend)
+    query_start = min(qstart, qend)
+    query_end = max(qstart, qend)
 
-    return qaccver, qstart, qend, saccver, slen, qlen
+    return qaccver, query_start, query_end, saccver, slen, qlen
 
 
 

@@ -34,6 +34,13 @@ options:
     schema:
       Campylobacter jejuni: "Campy_oxford_cgMLST_scheme_chewBBACA_sizefilter40_st_6p"
       Campylobacter coli: "Campy_oxford_cgMLST_scheme_chewBBACA_sizefilter40_st_6p"
+      Campylobacter lari: "Campy_oxford_cgMLST_scheme_chewBBACA_sizefilter40_st_6p"
+      Campylobacter upsaliensis: "Campy_oxford_cgMLST_scheme_chewBBACA_sizefilter40_st_6p"
+      Campylobacter fetus: "Campy_oxford_cgMLST_scheme_chewBBACA_sizefilter40_st_6p"
+      Campylobacter helveticus: "Campy_oxford_cgMLST_scheme_chewBBACA_sizefilter40_st_6p"
+      Campylobacter sputorum: "Campy_oxford_cgMLST_scheme_chewBBACA_sizefilter40_st_6p"
+      Campylobacter concisus: "Campy_oxford_cgMLST_scheme_chewBBACA_sizefilter40_st_6p"
+      Campylobacter hyointestinalis: "Campy_oxford_cgMLST_scheme_chewBBACA_sizefilter40_st_6p"
       Escherichia coli: "Escherichia_enterobase_cgMLSTv1_chewBBACA_sizefilter40_st_12p"
       Shigella sonnei: "Escherichia_enterobase_cgMLSTv1_chewBBACA_sizefilter40_st_12p"
       Shigella flexneri: "Escherichia_enterobase_cgMLSTv1_chewBBACA_sizefilter40_st_12p"
@@ -43,6 +50,13 @@ options:
     blastdb:
       Campylobacter jejuni: "all_campy_loci_blastdb"
       Campylobacter coli: "all_campy_loci_blastdb"
+      Campylobacter lari: "all_campy_loci_blastdb"
+      Campylobacter upsaliensis: "all_campy_loci_blastdb"
+      Campylobacter fetus: "all_campy_loci_blastdb"
+      Campylobacter helveticus: "all_campy_loci_blastdb"
+      Campylobacter sputorum: "all_campy_loci_blastdb"
+      Campylobacter concisus: "all_campy_loci_blastdb" 
+      Campylobacter hyointestinalis: "all_campy_loci_blastdb"
       Escherichia coli: "all_coli_loci_blastdb"
       Shigella sonnei: "all_coli_loci_blastdb"
       Shigella flexneri: "all_coli_loci_blastdb"
@@ -52,6 +66,13 @@ options:
     blatdb_2bit:
       Campylobacter jejuni: "all_campy_loci.2bit"
       Campylobacter coli: "all_campy_loci.2bit"
+      Campylobacter lari: "all_campy_loci.2bit"
+      Campylobacter upsaliensis: "all_campy_loci.2bit"
+      Campylobacter fetus: "all_campy_loci.2bit"
+      Campylobacter helveticus: "all_campy_loci.2bit"
+      Campylobacter sputorum: "all_campy_loci.2bit"
+      Campylobacter concisus: "all_campy_loci.2bit"
+      Campylobacter hyointestinalis: "all_campy_loci.2bit"
       Escherichia coli: "all_coli_loci.2bit"
       Shigella sonnei: "all_coli_loci.2bit"
       Shigella flexneri: "all_coli_loci.2bit"
@@ -61,12 +82,28 @@ options:
     blatdb_fa:
       Campylobacter jejuni: "all_campy_loci.fa"
       Campylobacter coli: "all_campy_loci.fa"
+      Campylobacter lari: "all_campy_loci.fa" 
+      Campylobacter upsaliensis: "all_campy_loci.fa"
+      Campylobacter fetus: "all_campy_loci.fa"
+      Campylobacter helveticus: "all_campy_loci.fa"
+      Campylobacter sputorum: "all_campy_loci.fa"
+      Campylobacter concisus: "all_campy_loci.fa"
+      Campylobacter hyointestinalis: "all_campy_loci.fa"
       Escherichia coli: "all_coli_loci.fa"
       Shigella sonnei: "all_coli_loci.fa"
       Shigella flexneri: "all_coli_loci.fa"
       Salmonella enterica: "all_salm_loci.fa"
       Listeria monocytogenes: "all_listeria_loci.fa"
       Clostridioides difficile: "all_cdiff_loci.fa"      
+
+# AMRfinderplus config also contain these - potential future inclusions 
+# Acinetobacter baummannii
+# Enterococcus faecalis, Enterococcus faecium, Enterococcus hirae
+# Klebsiella pneumonia, Klebsiella aerogenes, Neisseria gonorrhea, Neisseria meningitidis
+# Pseudomonas aeruginosa
+# Staphylococcus aureus, Staphylococcus pseudintermedius
+# Streptococcus agalactiae, Streptococcus pneumoniae, Streptococcus pyogenes
+# Vibrio cholerae
 
 #---------------------------------------------------------------------------------------------------
 

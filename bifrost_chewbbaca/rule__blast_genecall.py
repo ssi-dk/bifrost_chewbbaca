@@ -8,6 +8,32 @@ from bifrostlib.datahandling import Component, Sample
 from bifrostlib.datahandling import SampleComponentReference
 from bifrostlib.datahandling import SampleComponent
 from pathlib import Path
+import psutil
+from datetime import datetime
+import time
+
+def log_memory_usage(label="Memory usage",time_label="Wallclock time",log_file="memory_log.txt"):
+    process = psutil.Process(os.getpid())
+    memory_info = process.memory_info()
+    memory_in_mb = memory_info.rss / (1024 * 1024)  # Convert bytes to MB
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # Current timestamp
+    
+    # Write the log to the specified file
+    with open(log_file, "a", encoding="utf-8") as f:
+        f.write(f"{label}\t{memory_in_mb:.2f} MB\t{time_label}:\t{current_time}\n")
+
+def log_subprocess_memory_usage(proc, log_file="memory_log.txt", label="Subprocess Memory Usage"):
+    try:
+        if proc.poll() is None:  # Check if the subprocess is still running
+            child_proc = psutil.Process(proc.pid)  # Get the subprocess
+            memory_info = child_proc.memory_info()
+            memory_in_mb = memory_info.rss / (1024 * 1024)
+            current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+            with open(log_file, "a", encoding="utf-8") as f:
+                f.write(f"{current_time} - {label}: {memory_in_mb:.2f} MB\n")
+    except psutil.NoSuchProcess:
+        pass  # The subprocess has already terminated
 
 def run_blastn_and_parse(query_fa, db, assembly_sequences,log):
     """
@@ -15,17 +41,21 @@ def run_blastn_and_parse(query_fa, db, assembly_sequences,log):
     based on sorting criteria, while retaining all hits that are 100% identity and cover the
     full length for rare cases of the same locus appearing twice in one contig.
     """
+
+    log_file = "memory_log.txt"
+    
     blastn_cmd = [
         'blastn',
         '-query', query_fa,
         '-db', db,
         '-outfmt', '6 qaccver saccver slen pident length mismatch gapopen qstart qend sstart send evalue bitscore',
-        '-num_threads', '6',
+        '-num_threads', '1',
         '-subject_besthit',
         '-max_target_seqs', '2000000',
         '-perc_identity', '90',
         '-max_hsps', '5'
     ]
+    
     print(f"BLAST GENE COMMAND {blastn_cmd}")
     # Dictionary to store the best hit per (locus, contig)
     best_hits = {}
@@ -34,8 +64,19 @@ def run_blastn_and_parse(query_fa, db, assembly_sequences,log):
 
     # Run BLASTN and stream output
     blast_error_file = "blast_error_file"
+
+    log_memory_usage("Memory before launching BLAST subprocess", log_file)
+
     with subprocess.Popen(blastn_cmd, stdout=subprocess.PIPE, text=True, stderr=open(blast_error_file, "w+")) as proc:
+        print("inside subprocess")
+        #while proc.poll() is None:  # While BLAST is still running
+        #    log_subprocess_memory_usage(proc, log_file, label="BLAST subprocess memory")
+        #    time.sleep(1)
+
         stdout,err = proc.communicate()
+    
+        log_memory_usage("Memory after BLAST subprocess completed", log_file)
+    
         if proc.returncode != 0:
             raise RuntimeError(f"Command {' '.join([str(x) for x in blastn_cmd])} failed with code {proc.returncode}.\nCheck the logs in {blast_error_file}")
         
@@ -72,7 +113,9 @@ def run_blastn_and_parse(query_fa, db, assembly_sequences,log):
                 print(f"ERROR: Skipping line due to parsing error: {line.strip()} ({e})")
                 continue
             
-            print(f"line number is {line_no}")
+            if line_no % 10000 == 0:
+                print(f"line number is {line_no}")
+
             # Extract locus from the subject accession (saccver)
             locus = "_".join(record['saccver'].split("_")[:-1])
             key = (locus, record['qaccver'])  # Locus-contig combination
@@ -95,6 +138,8 @@ def run_blastn_and_parse(query_fa, db, assembly_sequences,log):
             if record['length'] == record['slen'] and record['pident'] == 100.0:
                 full_coverage_hits.append(record)
 
+    log_memory_usage("After processing BLAST output", log_file)
+
     # Collect the final list of hits
     final_hits = list(best_hits.values())
 
@@ -108,6 +153,8 @@ def run_blastn_and_parse(query_fa, db, assembly_sequences,log):
     for hit in final_hits:
         if hit['length'] / hit['slen'] >= 0.6:
             alleles.append(process_hit(hit, assembly_sequences))
+
+    log_memory_usage("After processing final hits", log_file)
 
     return alleles
 
@@ -124,6 +171,14 @@ def rule__blast_genecall(input: object, output: object, params: object, log: obj
         # resources_dir = component['resources']['schemes']
         species_detection = sample.get_category("species_detection")
         detected_species = species_detection["summary"]["detected_species"]
+
+        print(f"species detection {species_detection}\n")
+        print(f"detected species {detected_species}\n\n")
+        print(f"testing config file {Path(params.chewbbaca_blastdb)}\n")
+        print(f"component 1 {component['options']['chewbbaca_species_mapping']}\n")
+        print(f"component params {params.chewbbaca_blastdb}\n\n")
+        print(f"check test 2 {component['options']['chewbbaca_species_mapping']['blastdb']}\n\n")
+        print(f"used blat database {component['options']['chewbbaca_species_mapping']['blastdb'][detected_species]}\n\n")
 
         os.makedirs(output.gene_call_results, exist_ok=True)
         # process_single_assembly(

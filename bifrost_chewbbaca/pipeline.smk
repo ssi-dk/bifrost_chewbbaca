@@ -22,6 +22,13 @@ try:
     if sample is None:
         raise Exception("invalid sample passed")
     sample_name =sample['name']
+
+
+    species_detection = sample.get_category("species_detection")
+    species = species_detection["summary"].get("species", None)
+    species_sp = species.split()[0]
+    print(f"Species is {species} and species_sp is {species_sp}")
+
     component_ref = ComponentReference(name=config['component_name'])
     component:Component = Component.load(reference=component_ref) # schema 2.1
     if component is None:

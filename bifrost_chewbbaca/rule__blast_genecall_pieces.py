@@ -82,7 +82,7 @@ def split_fasta_in_memory(fasta_path, chunk_size=50,verbose=0):
     return chunks
 
 
-def run_blastn_and_parse(query_fa, db, assembly_sequences,log,chunk_output_dir,log_output_dir):
+def run_blastn_and_parse(query_fa, db, assembly_sequences,log,chunk_output_dir,log_output_dir,chunk_size, num_threads):
     """
     Runs BLASTN and processes the output on the fly to keep the best hit per locus-contig pair
     based on sorting criteria, while retaining all hits that are 100% identity and cover the
@@ -93,7 +93,7 @@ def run_blastn_and_parse(query_fa, db, assembly_sequences,log,chunk_output_dir,l
     log_file = os.path.join(log_output_dir,"memory_log.txt")
     print(f"Logfile is present at {log_file}")
     os.makedirs(chunk_output_dir, exist_ok=True)
-    contig_chunks = split_fasta_in_memory(query_fa,chunk_size=25,verbose=1)
+    contig_chunks = split_fasta_in_memory(query_fa,chunk_size=chunk_size,verbose=1)
 
     # Dictionary to store the best hit per (locus, contig)
     best_hits = {}
@@ -128,7 +128,7 @@ def run_blastn_and_parse(query_fa, db, assembly_sequences,log,chunk_output_dir,l
             '-query', '-',  # Use standard input for query
             '-db', db,
             '-outfmt', '6 qaccver saccver slen pident length mismatch gapopen qstart qend sstart send evalue bitscore',
-            '-num_threads', '6',
+            '-num_threads', str(num_threads),
             '-subject_besthit',
             '-max_target_seqs', '2000000',
             '-perc_identity', '90',
@@ -264,7 +264,9 @@ def rule__blast_genecall(input: object, output: object, params: object, log: obj
             output_file=output.gene_calls,
             log=log,
             chunk_output_dir=params.chunk_output_dir,
-            log_output_dir=params.log_output_dir
+            log_output_dir=params.log_output_dir,
+            chunk_size=params.chunk_size,
+            num_threads=params.num_threads
         )
 
         # process_loci_parallel(
@@ -355,7 +357,7 @@ def read_fasta(file_path):
     return {record.id: str(record.seq) for record in SeqIO.parse(file_path, "fasta")}
 
 
-def process_single_assembly(assembly_path, db, output_file, log,chunk_output_dir,log_output_dir):
+def process_single_assembly(assembly_path, db, output_file, log,chunk_output_dir,log_output_dir,chunk_size, num_threads):
     """
     Processes a single assembly against the specified database and writes the combined alleles to a single file.
     """
@@ -365,12 +367,17 @@ def process_single_assembly(assembly_path, db, output_file, log,chunk_output_dir
     fasta_sequences = read_fasta(assembly_path)
 
     # Run BLAST and parse the output
-    alleles = run_blastn_and_parse(assembly_path, db, fasta_sequences,log=log,chunk_output_dir=chunk_output_dir,log_output_dir=log_output_dir)
-    # blast_output = os.path.join(output_dir, f'blast_{assembly_name}.out')
-    # run_blastn(assembly_path, db, blast_output)
+    alleles = run_blastn_and_parse(
+        query_fa=assembly_path,
+        db=db,
+        assembly_sequences=fasta_sequences,
+        log=log,
+        chunk_output_dir=chunk_output_dir,
+        log_output_dir=log_output_dir,
+        chunk_size=chunk_size,
+        num_threads=num_threads
+    )
     
-    # # Parse and extract alleles based on the BLAST results
-    # alleles = parse_blast_output(blast_output, fasta_sequences)
     extracted_sequences = extract_subsequences(fasta_sequences, alleles)
     
     # Write extracted sequences to the combined FASTA file

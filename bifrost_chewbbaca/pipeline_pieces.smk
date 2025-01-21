@@ -137,9 +137,11 @@ rule blast_gene_call:
         samplecomponent_ref_json = samplecomponent.to_reference().json,
         chewbbaca_blastdb = f"{os.environ['BIFROST_CG_MLST_DIR']}/blastdb/",
 	chunk_output_dir = f"{component['name']}/blast_gene_call_results/fasta_chunks/",
-	log_output_dir = f"{component['name']}/blast_gene_call_results/log/"
+	log_output_dir = f"{component['name']}/blast_gene_call_results/log/",
+	chunk_size = 50,
+	num_threads = 6
     resources:
-        mem_mb=50000  # Adjust based on available memory
+        mem_mb=24000  # Adjust based on available memory
     output:
         gene_call_results = directory(f"{component['name']}/blast_gene_call_results"),
         gene_calls = f"{component['name']}/blast_gene_call_results/gene_calls.fa",

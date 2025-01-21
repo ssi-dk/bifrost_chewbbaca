@@ -12,18 +12,40 @@ import psutil
 from datetime import datetime
 import time
 
-def log_memory_usage(label="Memory usage",time_label="Wallclock time",log_file="memory_log.txt"):
+# Global variables to track start time and previous log time
+start_time = datetime.now()
+previous_log_time = None
+
+def log_memory_usage(label="Memory usage",log_file="memory_log.txt"):
+    global start_time, previous_log_time  # Use global variables to track time
+        
     process = psutil.Process(os.getpid())
     memory_info = process.memory_info()
     memory_in_mb = memory_info.rss / (1024 * 1024)  # Convert bytes to MB
     virtual_in_mb = memory_info.vms / (1024 * 1024)
-    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # Current timestamp
+    current_time = datetime.now()
+    #current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # Current timestamp
     
+    elapsed_time = current_time - start_time
+    elapsed_seconds = elapsed_time.total_seconds()
+    formatted_elapsed_time = f"{int(elapsed_seconds // 3600):02}:{int((elapsed_seconds % 3600) // 60):02}:{int(elapsed_seconds % 60):02}"
+    
+    # Calculate time difference from the previous log entry
+    if previous_log_time is None:
+        time_diff = "00:00:00"
+    else:
+        delta = current_time - previous_log_time
+        delta_seconds = delta.total_seconds()
+        time_diff = f"{int(delta_seconds // 3600):02}:{int((delta_seconds % 3600) // 60):02}:{int(delta_seconds % 60):02}"
+                                                
+    # Update the previous log time
+    previous_log_time = current_time
+
     # Write the log to the specified file
     with open(log_file, "a", encoding="utf-8") as f:
-        f.write(f"{label}\t{memory_in_mb:.2f} MB\t{virtual_in_mb:.2f} MB\t{time_label}:\t{current_time}\n")
+        f.write(f"{label}\tRAM:{memory_in_mb:.2f}MB\tVIRT:{virtual_in_mb:.2f}MB\tWallclock:{current_time.strftime('%Y-%m-%d %H:%M:%S')}\tTotal:{formatted_elapsed_time}\tDifference:{time_diff}\n")
 
-def log_subprocess_memory_usage(proc, log_file="memory_log.txt", label="Subprocess Memory Usage"):
+def log_subprocess_memory_usage(proc, log_file, label="Subprocess Memory Usage"):
     try:
         if proc.poll() is None:  # Check if the subprocess is still running
             child_proc = psutil.Process(proc.pid)  # Get the subprocess
@@ -43,6 +65,12 @@ def split_fasta_in_memory(fasta_path, chunk_size=50,verbose=0):
     """
     
     all_records = list(SeqIO.parse(fasta_path, "fasta"))
+
+    # If the number of records is less than or equal to chunk size, return a single chunk
+    if len(all_records) <= chunk_size:
+        print(f"the query_fa records are not seperated into chunks")
+        return [all_records]  # Wrap in a list to maintain consistency
+
     chunks = [all_records[i:i + chunk_size] for i in range(0, len(all_records), chunk_size)]
     
     if verbose==1:
@@ -51,49 +79,35 @@ def split_fasta_in_memory(fasta_path, chunk_size=50,verbose=0):
             for record in chunk:
                 print(f"  Contig ID: {record.id}, Length: {len(record.seq)}")
                                             
-
     return chunks
 
 
-def run_blastn_and_parse(query_fa, db, assembly_sequences,log):
+def run_blastn_and_parse(query_fa, db, assembly_sequences,log,chunk_output_dir,log_output_dir):
     """
     Runs BLASTN and processes the output on the fly to keep the best hit per locus-contig pair
     based on sorting criteria, while retaining all hits that are 100% identity and cover the
     full length for rare cases of the same locus appearing twice in one contig.
     """
 
-    log_file = "memory_log.txt"
-    
-    contig_chunks = split_fasta_in_memory(query_fa,chunk_size=50,verbose=1)
-    
+    os.makedirs(log_output_dir, exist_ok=True)
+    log_file = os.path.join(log_output_dir,"memory_log.txt")
+    print(f"Logfile is present at {log_file}")
+    os.makedirs(chunk_output_dir, exist_ok=True)
+    contig_chunks = split_fasta_in_memory(query_fa,chunk_size=25,verbose=1)
+
     # Dictionary to store the best hit per (locus, contig)
     best_hits = {}
     full_coverage_hits = []
   
-    """
-    blastn_cmd = [
-        'blastn',
-        '-query', query_fa,
-        '-db', db,
-        '-outfmt', '6 qaccver saccver slen pident length mismatch gapopen qstart qend sstart send evalue bitscore',
-        '-num_threads', '1',
-        '-subject_besthit',
-        '-max_target_seqs', '2000000',
-        '-perc_identity', '90',
-        '-max_hsps', '5'
-    ]
-    """
-    #print(f"BLAST GENE COMMAND {blastn_cmd}")
-
     # Run BLASTN and stream output
     blast_error_file = "blast_error_file"
 
-    log_memory_usage("Memory before launching BLAST subprocess", log_file)
+    log_memory_usage("Memory before launching BLAST subprocess", log_file=log_file)
 
     for idx, chunk in enumerate(contig_chunks):
         chunk_size = len(chunk)
         print(f"Processing chunk {idx + 1}/{len(contig_chunks)} with {chunk_size} contigs")
-        log_memory_usage(f"Memory before BLAST subprocess for chunk {idx + 1} with {chunk_size} contigs", log_file)
+        log_memory_usage(f"Memory before BLAST subprocess for chunk {idx + 1} with {chunk_size} contigs", log_file=log_file)
         
         # Convert the chunk back to a FASTA formatted string
         chunk_fasta = "".join(f">{rec.id}\n{str(rec.seq)}\n" for rec in chunk)
@@ -103,17 +117,12 @@ def run_blastn_and_parse(query_fa, db, assembly_sequences,log):
             print(f"WARNING: Skipping empty chunk {idx + 1}")
             continue
         
-        # Define the output FASTA file name
-        output_fasta_file = f"chunk_{idx + 1}.fasta"
-
-        # Write to the file
-        with open(output_fasta_file, "w", encoding="utf-8") as fasta_file:
-            fasta_file.write(chunk_fasta)
-
-        print(f"FASTA chunk written to {output_fasta_file}")
-
-        #print(f"the chunk fastas {chunk_fasta}")
-
+        if len(contig_chunks) > 1:
+            output_fasta_file = os.path.join(chunk_output_dir, f"chunk_{idx + 1}.fasta")
+            with open(output_fasta_file, "w", encoding="utf-8") as fasta_file:
+                fasta_file.write(chunk_fasta)
+                print(f"FASTA chunk written to {output_fasta_file}")
+        
         blastn_cmd = [
             'blastn',
             '-query', '-',  # Use standard input for query
@@ -126,14 +135,6 @@ def run_blastn_and_parse(query_fa, db, assembly_sequences,log):
             '-max_hsps', '5'
         ]
 
-        """
-        blastn_cmd = [
-            'blastn',
-            '-query', '-',  # Use standard input for query
-            '-db', db,
-            '-num_threads', '6'
-        ]
-        """
         print(f"Running BLAST command for chunk {idx + 1}/{len(contig_chunks)} \n {' '.join(map(str, blastn_cmd))}")
 
         with subprocess.Popen(
@@ -145,34 +146,10 @@ def run_blastn_and_parse(query_fa, db, assembly_sequences,log):
         ) as proc:
 
             print(f"Inside subprocess... sending input to BLAST")
-            
-
-            """
-            proc.stdin.write(chunk_fasta)
-            proc.stdin.close()
-            
-            for line in proc.stdout:
-                output_found = True
-                print(line.strip())
-                sys.stdout.write(line)  # Print each line without buffering
-                sys.stdout.flush()
-            
-            proc.wait()
-            
-            """
-
-            log_memory_usage(f"Memory before BLAST subprocess for chunk {idx + 1} with {chunk_size} contigs", log_file)
             stdout, err = proc.communicate(input=chunk_fasta) #stdout,_= proc.communicate(input=chunk_fasta)
-            
-            """
-            if not stdout.strip():
-                print("INFO: No hits found for this query.")
-            else:
-                print(stdout)
-            """
-            log_memory_usage(f"Memory after BLAST subprocess for chunk {idx + 1} with {chunk_size} contigs", log_file)
 
-                                   
+            log_memory_usage(f"Memory after BLAST subprocess for chunk {idx + 1} with {chunk_size} contigs", log_file=log_file)
+
             print(f"Finished BLAST for chunk {idx + 1}, processing results...")
             
             if proc.returncode != 0:
@@ -184,10 +161,6 @@ def run_blastn_and_parse(query_fa, db, assembly_sequences,log):
             line_no = 0
         
             for line in stdout.splitlines():
-                #for line in stdout:
-                # Parse the BLAST output line into a dictionary
-                #print(f"Processing line: {line.strip()}")
-                #print(f"DEBUG: {line} and {line.strip().split('\t')}")  # Add this to debug
                 cols = line.strip().split("\t")
                 line_no = line_no + 1 
 
@@ -216,7 +189,7 @@ def run_blastn_and_parse(query_fa, db, assembly_sequences,log):
                     continue
             
                 if line_no % 10000 == 0:
-                    print(f"line number is {line_no}")
+                    print(f"Processed {line_no} lines of chunk {idx + 1} BLAST output")
 
                 # Extract locus from the subject accession (saccver)
                 locus = "_".join(record['saccver'].split("_")[:-1])
@@ -238,7 +211,7 @@ def run_blastn_and_parse(query_fa, db, assembly_sequences,log):
                 if record['length'] == record['slen'] and record['pident'] == 100.0:
                     full_coverage_hits.append(record)
 
-    log_memory_usage("After processing BLAST output", log_file)
+    log_memory_usage("After processing BLAST output", log_file=log_file)
 
     # Collect the final list of hits
     final_hits = list(best_hits.values())
@@ -254,7 +227,7 @@ def run_blastn_and_parse(query_fa, db, assembly_sequences,log):
         if hit['length'] / hit['slen'] >= 0.6:
             alleles.append(process_hit(hit, assembly_sequences))
 
-    log_memory_usage("After processing final hits", log_file)
+    log_memory_usage("After processing final hits", log_file=log_file)
 
     return alleles
 
@@ -278,7 +251,7 @@ def rule__blast_genecall(input: object, output: object, params: object, log: obj
         print(f"component 1 {component['options']['chewbbaca_species_mapping']}\n")
         print(f"component params {params.chewbbaca_blastdb}\n\n")
         print(f"check test 2 {component['options']['chewbbaca_species_mapping']['blastdb']}\n\n")
-        print(f"used blat database {component['options']['chewbbaca_species_mapping']['blastdb'][detected_species]}\n\n")
+        print(f"used database {component['options']['chewbbaca_species_mapping']['blastdb'][detected_species]}\n\n")
 
         os.makedirs(output.gene_call_results, exist_ok=True)
         # process_single_assembly(
@@ -288,7 +261,11 @@ def rule__blast_genecall(input: object, output: object, params: object, log: obj
         process_single_assembly(
             assembly_path=input.genome, 
             db=Path(params.chewbbaca_blastdb)/component["options"]["chewbbaca_species_mapping"]['blastdb'][detected_species],
-            output_file=output.gene_calls,log=log)
+            output_file=output.gene_calls,
+            log=log,
+            chunk_output_dir=params.chunk_output_dir,
+            log_output_dir=params.log_output_dir
+        )
 
         # process_loci_parallel(
         #     component["options"]["chewbbaca_species_mapping"]['blastdb'][detected_species],
@@ -378,7 +355,7 @@ def read_fasta(file_path):
     return {record.id: str(record.seq) for record in SeqIO.parse(file_path, "fasta")}
 
 
-def process_single_assembly(assembly_path, db, output_file, log):
+def process_single_assembly(assembly_path, db, output_file, log,chunk_output_dir,log_output_dir):
     """
     Processes a single assembly against the specified database and writes the combined alleles to a single file.
     """
@@ -388,7 +365,7 @@ def process_single_assembly(assembly_path, db, output_file, log):
     fasta_sequences = read_fasta(assembly_path)
 
     # Run BLAST and parse the output
-    alleles = run_blastn_and_parse(assembly_path, db, fasta_sequences, log=log)
+    alleles = run_blastn_and_parse(assembly_path, db, fasta_sequences,log=log,chunk_output_dir=chunk_output_dir,log_output_dir=log_output_dir)
     # blast_output = os.path.join(output_dir, f'blast_{assembly_name}.out')
     # run_blastn(assembly_path, db, blast_output)
     

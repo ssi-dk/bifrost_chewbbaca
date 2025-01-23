@@ -140,8 +140,6 @@ rule blast_gene_call:
 	log_output_dir = f"{component['name']}/blast_gene_call_results/log/",
 	chunk_size = 50,
 	num_threads = 6
-    resources:
-        mem_mb=24000  # Adjust based on available memory
     output:
         gene_call_results = directory(f"{component['name']}/blast_gene_call_results"),
         gene_calls = f"{component['name']}/blast_gene_call_results/gene_calls.fa",

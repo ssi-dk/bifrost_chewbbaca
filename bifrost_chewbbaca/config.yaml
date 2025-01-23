@@ -44,7 +44,10 @@ options:
       Escherichia coli: "Escherichia_enterobase_cgMLSTv1_chewBBACA_sizefilter40_st_12p"
       Shigella sonnei: "Escherichia_enterobase_cgMLSTv1_chewBBACA_sizefilter40_st_12p"
       Shigella flexneri: "Escherichia_enterobase_cgMLSTv1_chewBBACA_sizefilter40_st_12p"
+      Shigella boydii: "Escherichia_enterobase_cgMLSTv1_chewBBACA_sizefilter40_st_12p"
+      Shigella dysenteriae:  "Escherichia_enterobase_cgMLSTv1_chewBBACA_sizefilter40_st_12p"
       Salmonella enterica: "Salmonella_enterobase_cgMLSTv2_230207_chewBBACA_sizefilter40_st_05p"
+      Salmonella bongori: "Salmonella_enterobase_cgMLSTv2_230207_chewBBACA_sizefilter40_st_05p"
       Listeria monocytogenes: "Listeria_bigsdb_cgmlst1748_chewBBACA_sizefilter40_st_5p"
       Clostridioides difficile: "Cdiff_enterobase_cgMLSTv1_chewBBACA_sizefilter40_st001p"
     blastdb:
@@ -60,7 +63,10 @@ options:
       Escherichia coli: "all_coli_loci_blastdb"
       Shigella sonnei: "all_coli_loci_blastdb"
       Shigella flexneri: "all_coli_loci_blastdb"
+      Shigella boydii: "all_coli_loci_blastdb"
+      Shigella dysenteriae: "all_coli_loci_blastdb"
       Salmonella enterica: "all_salm_loci_blastdb"
+      Salmonella bongori: "all_salm_loci_blastdb"
       Listeria monocytogenes: "all_listeria_loci_blastdb"
       Clostridioides difficile: "all_cdiff_loci_blastdb"
     blatdb_2bit:
@@ -76,7 +82,10 @@ options:
       Escherichia coli: "all_coli_loci.2bit"
       Shigella sonnei: "all_coli_loci.2bit"
       Shigella flexneri: "all_coli_loci.2bit"
+      Shigella boydii: "all_coli_loci.2bit"
+      Shigella dysenteriae: "all_coli_loci.2bit"
       Salmonella enterica: "all_salm_loci.2bit"
+      Salmonella bongori: "all_salm_loci.2bit"
       Listeria monocytogenes: "all_listeria_loci.2bit"
       Clostridioides difficile: "all_cdiff_loci.2bit"
     blatdb_fa:
@@ -92,18 +101,13 @@ options:
       Escherichia coli: "all_coli_loci.fa"
       Shigella sonnei: "all_coli_loci.fa"
       Shigella flexneri: "all_coli_loci.fa"
+      Shigella boydii: "all_coli_loci.fa"
+      Shigella dysenteriae: "all_coli_loci.fa"
       Salmonella enterica: "all_salm_loci.fa"
+      Salmonella bongori: "all_salm_loci.fa"
       Listeria monocytogenes: "all_listeria_loci.fa"
       Clostridioides difficile: "all_cdiff_loci.fa"      
 
-# AMRfinderplus config also contain these - potential future inclusions 
-# Acinetobacter baummannii
-# Enterococcus faecalis, Enterococcus faecium, Enterococcus hirae
-# Klebsiella pneumonia, Klebsiella aerogenes, Neisseria gonorrhea, Neisseria meningitidis
-# Pseudomonas aeruginosa
-# Staphylococcus aureus, Staphylococcus pseudintermedius
-# Streptococcus agalactiae, Streptococcus pneumoniae, Streptococcus pyogenes
-# Vibrio cholerae
 
 #---------------------------------------------------------------------------------------------------
 

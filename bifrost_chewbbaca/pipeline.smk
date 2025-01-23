@@ -145,7 +145,7 @@ rule blast_gene_call:
         gene_calls = f"{component['name']}/blast_gene_call_results/gene_calls.fa",
         gene_call_done = f"{component['name']}/blast_gene_call_done"
     script:
-        os.path.join(os.path.dirname(workflow.snakefile), "rule__blast_genecall_pieces.py")
+        os.path.join(os.path.dirname(workflow.snakefile), "rule__blast_genecall.py")
 
 rule_name = "run_chewbbaca_on_genome"
 rule run_chewbbaca_on_genome:

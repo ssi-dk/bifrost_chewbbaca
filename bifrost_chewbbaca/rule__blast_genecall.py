@@ -45,20 +45,7 @@ def log_memory_usage(label="Memory usage",log_file="memory_log.txt"):
     with open(log_file, "a", encoding="utf-8") as f:
         f.write(f"{label}\tRAM:{memory_in_mb:.2f}MB\tVIRT:{virtual_in_mb:.2f}MB\tWallclock:{current_time.strftime('%Y-%m-%d %H:%M:%S')}\tTotal:{formatted_elapsed_time}\tDifference:{time_diff}\n")
 
-def log_subprocess_memory_usage(proc, log_file, label="Subprocess Memory Usage"):
-    try:
-        if proc.poll() is None:  # Check if the subprocess is still running
-            child_proc = psutil.Process(proc.pid)  # Get the subprocess
-            memory_info = child_proc.memory_info()
-            memory_in_mb = memory_info.rss / (1024 * 1024)
-            current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-            with open(log_file, "a", encoding="utf-8") as f:
-                f.write(f"{current_time} - {label}: {memory_in_mb:.2f} MB\n")
-    except psutil.NoSuchProcess:
-        pass  # The subprocess has already terminated
-
-def split_fasta_in_memory(fasta_path, chunk_size=50,verbose=0):
+def split_fasta_in_memory(fasta_path, chunk_size=50):
     """
     Splits a FASTA file into chunks of roughly `chunk_size` contigs in memory.
     Returns a list of lists, where each inner list contains FASTA entries.
@@ -72,13 +59,7 @@ def split_fasta_in_memory(fasta_path, chunk_size=50,verbose=0):
         return [all_records]  # Wrap in a list to maintain consistency
 
     chunks = [all_records[i:i + chunk_size] for i in range(0, len(all_records), chunk_size)]
-    
-    if verbose==1:
-        for idx, chunk in enumerate(chunks):
-            print(f"Chunk {idx + 1}/{len(chunks)} contains {len(chunk)} contigs:")
-            for record in chunk:
-                print(f"  Contig ID: {record.id}, Length: {len(record.seq)}")
-                                            
+                                               
     return chunks
 
 
@@ -91,9 +72,19 @@ def run_blastn_and_parse(query_fa, db, assembly_sequences,log,chunk_output_dir,l
 
     os.makedirs(log_output_dir, exist_ok=True)
     log_file = os.path.join(log_output_dir,"memory_log.txt")
-    print(f"Logfile is present at {log_file}")
+    #print(f"Memory logfile is present at {log_file}")
+    
     os.makedirs(chunk_output_dir, exist_ok=True)
-    contig_chunks = split_fasta_in_memory(query_fa,chunk_size=chunk_size,verbose=1)
+    contig_chunks = split_fasta_in_memory(query_fa,chunk_size=chunk_size)
+    #print(f"Created fasta chunks are present at {log_file}")
+    contig_log_file = os.path.join(chunk_output_dir,"log.txt")
+    with open(contig_log_file, "w", encoding="utf-8") as f:
+        for idx, chunk in enumerate(contig_chunks):
+            f.write(f"Chunk {idx + 1}/{len(contig_chunks)} contains {len(chunk)} contigs:\n")
+            for record in chunk:
+                f.write(f"  Contig ID: {record.id}, Length: {len(record.seq)}\n")
+    #print(f"Contig logfile is present at {contig_log_file}")
+
 
     # Dictionary to store the best hit per (locus, contig)
     best_hits = {}
@@ -135,7 +126,7 @@ def run_blastn_and_parse(query_fa, db, assembly_sequences,log,chunk_output_dir,l
             '-max_hsps', '5'
         ]
 
-        print(f"Running BLAST command for chunk {idx + 1}/{len(contig_chunks)} \n {' '.join(map(str, blastn_cmd))}")
+        #print(f"Running BLAST command for chunk {idx + 1}/{len(contig_chunks)} \n {' '.join(map(str, blastn_cmd))}")
 
         with subprocess.Popen(
                 blastn_cmd, 
@@ -145,7 +136,7 @@ def run_blastn_and_parse(query_fa, db, assembly_sequences,log,chunk_output_dir,l
                 text=True
         ) as proc:
 
-            print(f"Inside subprocess... sending input to BLAST")
+            print(f"Sending input for chunk {idx + 1} to BLAST")
             stdout, err = proc.communicate(input=chunk_fasta) #stdout,_= proc.communicate(input=chunk_fasta)
 
             log_memory_usage(f"Memory after BLAST subprocess for chunk {idx + 1} with {chunk_size} contigs", log_file=log_file)
@@ -188,8 +179,8 @@ def run_blastn_and_parse(query_fa, db, assembly_sequences,log,chunk_output_dir,l
                     print(f"ERROR: Skipping line due to parsing error: {line.strip()} ({e})")
                     continue
             
-                if line_no % 10000 == 0:
-                    print(f"Processed {line_no} lines of chunk {idx + 1} BLAST output")
+                #if line_no % 10000 == 0:
+                #    print(f"Processed {line_no} lines of chunk {idx + 1} BLAST output")
 
                 # Extract locus from the subject accession (saccver)
                 locus = "_".join(record['saccver'].split("_")[:-1])
@@ -244,7 +235,8 @@ def rule__blast_genecall(input: object, output: object, params: object, log: obj
         # resources_dir = component['resources']['schemes']
         species_detection = sample.get_category("species_detection")
         detected_species = species_detection["summary"]["detected_species"]
-
+        
+        """
         print(f"species detection {species_detection}\n")
         print(f"detected species {detected_species}\n\n")
         print(f"testing config file {Path(params.chewbbaca_blastdb)}\n")
@@ -252,6 +244,7 @@ def rule__blast_genecall(input: object, output: object, params: object, log: obj
         print(f"component params {params.chewbbaca_blastdb}\n\n")
         print(f"check test 2 {component['options']['chewbbaca_species_mapping']['blastdb']}\n\n")
         print(f"used database {component['options']['chewbbaca_species_mapping']['blastdb'][detected_species]}\n\n")
+        """
 
         os.makedirs(output.gene_call_results, exist_ok=True)
         # process_single_assembly(

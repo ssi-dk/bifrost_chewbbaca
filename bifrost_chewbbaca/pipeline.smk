@@ -22,6 +22,13 @@ try:
     if sample is None:
         raise Exception("invalid sample passed")
     sample_name =sample['name']
+
+
+    species_detection = sample.get_category("species_detection")
+    species = species_detection["summary"].get("species", None)
+    species_sp = species.split()[0]
+    print(f"Species is {species} and species_sp is {species_sp}")
+
     component_ref = ComponentReference(name=config['component_name'])
     component:Component = Component.load(reference=component_ref) # schema 2.1
     if component is None:
@@ -129,6 +136,10 @@ rule blast_gene_call:
     params:
         samplecomponent_ref_json = samplecomponent.to_reference().json,
         chewbbaca_blastdb = f"{os.environ['BIFROST_CG_MLST_DIR']}/blastdb/",
+	chunk_output_dir = f"{component['name']}/blast_gene_call_results/fasta_chunks/",
+	log_output_dir = f"{component['name']}/blast_gene_call_results/log/",
+	chunk_size = 50,
+	num_threads = 6
     output:
         gene_call_results = directory(f"{component['name']}/blast_gene_call_results"),
         gene_calls = f"{component['name']}/blast_gene_call_results/gene_calls.fa",

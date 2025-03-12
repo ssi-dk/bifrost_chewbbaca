@@ -23,12 +23,33 @@ try:
         raise Exception("invalid sample passed")
     sample_name =sample['name']
 
-
     species_detection = sample.get_category("species_detection")
     species = species_detection["summary"].get("species", None)
     species_sp = species.split()[0]
     print(f"Species is {species} and species_sp is {species_sp}")
 
+    sample_info = sample.get_category("sample_info")
+    run_mode_sequencing = sample_info["summary"].get("haveReads")
+    run_mode_assembly = sample_info["summary"].get("haveAsm")
+    run_mode = None
+    print(f"{run_mode_sequencing}")
+   
+    if run_mode_sequencing == True and run_mode_assembly == False:
+        print(f"running sequencing mode {run_mode_sequencing}")
+        run_mode = "sequencing"
+        ruleorder: setup > check_requirements > blast_gene_call > run_chewbbaca_on_genome > datadump > all
+    elif run_mode_assembly == True and run_mode_sequencing == False:
+        print(f"running assembly mode {run_mode_assembly}")
+        run_mode = "assembly"
+	ruleorder: setup > check_requirements > split_assembly_fasta > blast_gene_call > run_chewbbaca_on_genome > datadump > all
+    elif run_mode_sequencing == False and run_mode_assembly == False:
+        print(f"failed to run any chewbacca mode")
+    elif run_mode_sequencing == True and run_mode_assembly == True:
+        run_mode = "sequencing"
+	ruleorder: setup > check_requirements > blast_gene_call > run_chewbbaca_on_genome > datadump > all
+
+    print(f"FINAL RUN MODE {run_mode}")
+    
     component_ref = ComponentReference(name=config['component_name'])
     component:Component = Component.load(reference=component_ref) # schema 2.1
     if component is None:
@@ -97,29 +118,29 @@ rule check_requirements:
             with open(output.check_file, "w") as fh:
                 fh.write("")
 
-#- Templated section: end --------------------------------------------------------------------------
+rule_name = "split_assembly_fasta"
+rule split_assembly_fasta:
+    message:
+        f"Running step:{rule_name}"
+    log:
+        out_file = f"{component['name']}/log/{rule_name}.out.log",
+        err_file = f"{component['name']}/log/{rule_name}.err.log",
+    benchmark:
+        f"{component['name']}/benchmarks/{rule_name}.benchmark"
+    input:
+        rules.check_requirements.output.check_file,
+        genome = f"{sample['categories']['contigs']['summary']['data']}" 
+    params:
+        log_output_dir = f"{component['name']}/log",
+        length_threshold = 1000000,
+        splits = 5	
+    output:
+        split_genome = f"{component['name']}/split_fasta.fa"
+    script:
+        os.path.join(os.path.dirname(workflow.snakefile), "rule__split_assembly_fasta.py")
 
-#* Dynamic section: start **************************************************************************
-
-# rule_name = "fetch_cgmlst_database"
-# rule fetch_cgmlst_database:
-#     message:
-#         f"Running step:{rule_name}"
-#     log:
-#         out_file = f"{component['name']}/log/{rule_name}.out.log",
-#         err_file = f"{component['name']}/log/{rule_name}.err.log",
-#     benchmark:
-#         f"{component['name']}/benchmarks/{rule_name}.benchmark"
-#     input:
-#         rules.check_requirements.output.check_file
-#     output:
-#         cgMLST_database_path = directory()
-#     params:
-#         samplecomponent_ref_json = samplecomponent.to_reference().json,
-#         chewbbaca_schemes = component['resources']['schemes']
-#     script:
-#         os.path.join(os.path.dirname(workflow.snakefile), "rule__chewbbaca.py")
-    
+#    shell:
+#        "echo {output.split_genome} with {params.length_threshold} and {params.splits}" 
 
 rule_name = "blast_gene_call"
 rule blast_gene_call:
@@ -132,7 +153,7 @@ rule blast_gene_call:
         f"{component['name']}/benchmarks/{rule_name}.benchmark"
     input:
         rules.check_requirements.output.check_file,
-        genome = f"{sample['categories']['contigs']['summary']['data']}"
+	genome = f"{sample['categories']['contigs']['summary']['data']}" if run_mode == "sequencing" else rules.split_assembly_fasta.output.split_genome
     params:
         samplecomponent_ref_json = samplecomponent.to_reference().json,
         chewbbaca_blastdb = f"{os.environ['BIFROST_CG_MLST_DIR']}/blastdb/",

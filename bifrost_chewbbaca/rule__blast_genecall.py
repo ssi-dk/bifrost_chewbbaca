@@ -94,7 +94,7 @@ def split_contigs(query_fa,chunk_output_dir,run_mode,length_threshold,splits):
                 print(f"\t seperated original {contig_id} : {len(sequence)} into new {new_contig_id} : {len(sequence[start:end])}")
         else:
             fasta_sequences[contig_id] = sequence
-            print(f"Processed contig {contig_id} with length {len(sequence)}")
+            #print(f"Processed contig {contig_id} with length {len(sequence)}")
     
     records = [SeqRecord(Seq(seq), id=contig_id, description="") for contig_id, seq in fasta_sequences.items()]
     
@@ -180,11 +180,14 @@ def run_blastn_and_parse(query_fa, db,log,chunk_output_dir,log_output_dir,chunk_
 
             print(f"Finished BLAST for chunk {idx + 1}, processing results...")
             
-            if proc.returncode != 0:
-                print(f"ERROR: BLAST failed for chunk {idx + 1}")
-                with open(blast_error_file, "w") as err_file:
-                    err_file.write(stderr)
-                raise RuntimeError(f"Command {' '.join([str(x) for x in blastn_cmd])} failed for cunk {idx + 1} with code {proc.returncode}.\nCheck the logs in {blast_error_file}")
+            if proc.returncode != 0:                       
+                if proc.returncode == -9:
+                    raise RuntimeError(f"BLAST subprocess was killed by the system (exit code -9) while processing chunk {idx + 1} ")
+                else:
+                    raise RuntimeError(f"BLAST subprocess failed for chunk {idx + 1} with code {proc.returncode}.")
+
+            #if proc.returncode != 0:
+            #    raise RuntimeError(f"Command {' '.join([str(x) for x in blastn_cmd])} failed for cunk {idx + 1} with code {proc.returncode}.\nCheck the logs in {blast_error_file}")
         
             line_no = 0
         

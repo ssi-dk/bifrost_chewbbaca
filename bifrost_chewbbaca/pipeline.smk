@@ -157,7 +157,7 @@ rule blast_gene_call:
         chewbbaca_blastdb = f"{os.environ['BIFROST_CG_MLST_DIR']}/blastdb/",
 	chunk_output_dir = f"{component['name']}/blast_gene_call_results/fasta_chunks/",
 	log_output_dir = f"{component['name']}/blast_gene_call_results/log/",
-	chunk_size = 50,
+	chunk_size = 25,
 	num_threads = 6,
 	run_mode = mode,
 	length_threshold = 1000000,

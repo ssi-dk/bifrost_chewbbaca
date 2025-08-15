@@ -136,6 +136,7 @@ rule blast_gene_call:
     params:
         samplecomponent_ref_json = samplecomponent.to_reference().json,
         chewbbaca_blastdb = f"{os.environ['BIFROST_CG_MLST_DIR']}/blastdb/",
+        chewbbaca_schemes = f"{os.environ['BIFROST_CG_MLST_DIR']}/schemes/",
 	chunk_output_dir = f"{component['name']}/blast_gene_call_results/fasta_chunks/",
 	log_output_dir = f"{component['name']}/blast_gene_call_results/log/",
 	chunk_size = 50,

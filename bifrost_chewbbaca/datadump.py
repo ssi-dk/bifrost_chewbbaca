@@ -43,11 +43,16 @@ def extract_cgmlst(cgmlst: Category, results: Dict, component_name: str) -> None
         lines = input.readlines()
         lines = [i.strip() for i in lines]
         locus_names = lines[0].split()[1:]
-        allele_values = [int(x) if x.isdigit() else x for x in lines[1].split()[1:]]
+        original_allele_values = [int(x) if x.isdigit() else x for x in lines[1].split()[1:]]
+        allele_values = [int(x.strip("INF-")) if x.strip("INF-").isdigit() else x for x in lines[1].split()[1:]]
 
         allele_dict = {
-            locus_names[i]: allele_values[i] for i in range(len(locus_names))
+            locus_names[i]: original_allele_values[i] for i in range(len(locus_names))
         }
+        new_alleles = {
+            locus: allele for locus,allele in allele_dict if allele.startswith("INF-")
+            }
+
         cgmlst["summary"]["call_percent"] = call_percent(allele_values)
         cgmlst["summary"]["multiple_alleles"] = multiple_alleles(allele_values)
     results[file_key] = allele_dict
@@ -55,6 +60,7 @@ def extract_cgmlst(cgmlst: Category, results: Dict, component_name: str) -> None
     cgmlst["report"]["schema"] = {"name": schema_name(component_name), "digest": schema_digest(locus_names)}
     cgmlst["report"]["alleles"] = allele_dict
     cgmlst["report"]["allele_array"] = allele_values
+    cgmlst["report"]["new_alleles"] = new_alleles
     cgmlst["report"]["loci"] = locus_names
 
 

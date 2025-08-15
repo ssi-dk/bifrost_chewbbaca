@@ -23,7 +23,7 @@ def test_cwd():
 
 
 class TestBifrostchewBBACA:
-    component_name = "chewbbaca__v2.0.0"
+    component_name = "chewbbaca__v2.1.0"
 
     bifrost_install_dir = os.environ["BIFROST_INSTALL_DIR"]
 

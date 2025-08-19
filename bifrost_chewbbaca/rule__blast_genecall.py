@@ -253,10 +253,10 @@ def rule__blast_genecall(input: object, output: object, params: object, log: obj
 
         os.makedirs(output.gene_call_results, exist_ok=True)
         process_single_assembly(
-            assembly_path=input.genome,
+            assembly_path=Path(input.genome),
             schema_dir=Path(params.chewbbaca_schemes)/component["options"]["chewbbaca_species_mapping"]['schema'][detected_species],
             # db=Path(params.chewbbaca_blastdb)/component["options"]["chewbbaca_species_mapping"]['blastdb'][detected_species],
-            output_file=output.gene_calls,
+            output_file=Path(output.gene_calls),
             log=log,
             max_workers=params.num_threads
         )

@@ -326,7 +326,7 @@ def run_blast_locus(assembly_path: Path, locus_path: Path, genome: Fasta, assemb
     """
     Run BLAST for a single locus against an assembly and return allele regions.
     """
-    locus_name = locus_path.stem.replace('.fasta', '')
+    locus_name = locus_path.name.replace('.fasta', '')
     blast_output = f"blast_{assembly_name}_{locus_name}.txt"
     cmd = [
         'blastn', '-query', assembly_path,
@@ -342,7 +342,7 @@ def run_blast_locus(assembly_path: Path, locus_path: Path, genome: Fasta, assemb
         os.remove(blast_output)
     return alleles
 
-def process_single_assembly(assembly_path: Path, schema_dir: str, output_file: Path, log: object, max_workers: int):
+def process_single_assembly(assembly_path: Path, schema_dir: Path, output_file: Path, log: object, max_workers: int):
     if not assembly_path.exists():
         raise FileNotFoundError(f"Assembly file not found: {assembly_path}")
 
@@ -356,7 +356,7 @@ def process_single_assembly(assembly_path: Path, schema_dir: str, output_file: P
             executor.submit(
                 run_blast_locus,
                 assembly_path,
-                os.path.join(schema_dir, locus),
+                schema_dir/locus,
                 genome,
                 Path(assembly_path.name).stem
             ): locus for locus in loci

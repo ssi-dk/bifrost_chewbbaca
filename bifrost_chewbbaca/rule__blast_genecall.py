@@ -1,5 +1,4 @@
 import os
-import subprocess
 import traceback
 from Bio import SeqIO
 from Bio.Seq import Seq

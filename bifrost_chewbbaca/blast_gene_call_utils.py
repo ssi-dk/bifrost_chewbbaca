@@ -11,7 +11,6 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from collections import Counter
 from Bio.Seq import Seq
 from pyfaidx import Fasta
-from tqdm import tqdm
 import multiprocessing
 
 # Define valid bases and codon sets (uppercase)

@@ -5,13 +5,14 @@ import argparse
 import sys
 import logging
 import pathlib
-import datetime
+from datetime import datetime
 from pathlib import Path 
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from collections import Counter
 from Bio.Seq import Seq
 from pyfaidx import Fasta
 import multiprocessing
+import psutil
 
 # Define valid bases and codon sets (uppercase)
 VALID_BASES = set(('A', 'T', 'C', 'G'))

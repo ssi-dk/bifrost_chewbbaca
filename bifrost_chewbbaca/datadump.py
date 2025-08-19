@@ -50,7 +50,7 @@ def extract_cgmlst(cgmlst: Category, results: Dict, component_name: str) -> None
             locus_names[i]: original_allele_values[i] for i in range(len(locus_names))
         }
         new_alleles = {
-            locus: allele for locus, allele in allele_dict.items() if allele.startswith("INF-")
+            locus: allele for locus, allele in allele_dict.items() if isinstance(allele, str) and allele.startswith("INF-")
             }
 
         cgmlst["summary"]["call_percent"] = call_percent(allele_values)

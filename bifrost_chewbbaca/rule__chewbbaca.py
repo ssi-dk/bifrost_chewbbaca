@@ -84,7 +84,6 @@ class ChewbbacaAlleleCall:
             "-g", self.schema.path(),
             "-o", self.outputdir,
             "--cpu", "4",
-            "--pm", "meta",
             "--cds"
         ]
         run_cmd(cmd, self.log, input="no\n")

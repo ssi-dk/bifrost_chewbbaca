@@ -87,7 +87,7 @@ class ChewbbacaAlleleCall:
             "--cds"
         ]
         run_cmd(cmd, self.log, input="no\n")
-
+    #--no-inferred -Use this parameter if the schema is being accessed by multiple processes/users simultaneously
 
 class Schema:
     def __init__(self, species_name, schema_home, mapping, log) -> None:

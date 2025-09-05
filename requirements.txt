@@ -7,3 +7,6 @@ coverage
 pyyaml
 argh
 watchdog
+pyrodigal
+plotly
+SPARQLWrapper

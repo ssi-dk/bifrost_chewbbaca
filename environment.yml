@@ -3,9 +3,18 @@ channels:
   - bioconda
   - defaults
 dependencies:
+  - python=3.11
+  - git                 # needed for pip VCS installs
   - snakemake-minimal==8.10.6
-  - blast>=2.16.0
-  - chewbbaca>=3.3.10
+  
+  # chewBBACA runtime deps (compatible with 3.4.1)
+  - numpy=1.24.*          # aligns with chewBBACA’s pin
+  - scipy=1.10.*          # required
+  - pandas=2.0.*          # <2.1 per requirement
+  - plotly>=5.8           # required
+  - SPARQLWrapper         # conda package name is lowercase
+  - pyrodigal             # required
+
   - pip
   - pip:
     - pyfaidx

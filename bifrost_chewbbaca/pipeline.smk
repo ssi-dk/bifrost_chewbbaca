@@ -117,6 +117,7 @@ rule blast_gene_call:
         f"{component['name']}/benchmarks/{rule_name}.benchmark"
     input:
         rules.check_requirements.output.check_file,
+        rules.set_time_start.output.start_file,
         genome = f"{sample['categories']['contigs']['summary']['data']}"
     params:
         samplecomponent_ref_json = samplecomponent.to_reference().json,
@@ -133,6 +134,26 @@ rule blast_gene_call:
     script:
         os.path.join(os.path.dirname(workflow.snakefile), "rule__blast_genecall.py")
 
+rule set_blast_time_end:
+    input:
+        rules.blast_gene_call.output.gene_call_done
+    output:
+        blast_end_file = f"{component['name']}/blast_time_end.txt"
+    run:
+        import time
+        with open(output.blast_end_file, "w") as fh:
+            fh.write(str(time.time()))
+
+rule set_chewbbaca_time_start:
+    input:
+        rules.blast_gene_call.output.gene_call_done,
+    output:
+        chewbbaca_start_file = f"{component['name']}/chewbbaca_time_start.txt"
+    run:
+        import time
+        with open(output.chewbbaca_start_file, "w") as fh:
+            fh.write(str(time.time()))
+
 rule_name = "run_chewbbaca_on_genome"
 rule run_chewbbaca_on_genome:
     message:
@@ -144,6 +165,7 @@ rule run_chewbbaca_on_genome:
         f"{component['name']}/benchmarks/{rule_name}.benchmark"
     input:
         rules.check_requirements.output.check_file,
+        rules.set_chewbbaca_time_start.output.chewbbaca_start_file,
         rules.blast_gene_call.output.gene_call_done,
         #genome = f"{sample['categories']['contigs']['summary']['data']}"
         genome = rules.blast_gene_call.output.gene_calls
@@ -156,6 +178,7 @@ rule run_chewbbaca_on_genome:
         chewbbaca_schemes = f"{os.environ['BIFROST_CG_MLST_DIR']}/schemes/",
     script:
         os.path.join(os.path.dirname(workflow.snakefile), "rule__chewbbaca.py")
+
 
 #* Dynamic section: end ****************************************************************************
 
@@ -207,7 +230,9 @@ rule dump_info:
     input:
         start_file = rules.set_time_start.output.start_file,
         end_file = rules.set_time_end.output.end_file,
-        git_hash = rules.git_version.output.git_hash
+        git_hash = rules.git_version.output.git_hash,
+        blast_end = rules.set_blast_time_end.output.blast_end_file,
+        chewbbaca_start = rules.set_chewbbaca_time_start.output.chewbbaca_start_file,
     output:
         runtime_flag = touch(f"{component['name']}/runtime_set")
     run:
@@ -220,7 +245,11 @@ rule dump_info:
             t_end = float(fh.read().strip())
         with open(input.git_hash) as fh:
             git_hash = str(fh.read().strip())
-	
+
+        with open(input.blast_end) as fh: t_b_end = float(fh.read().strip())
+
+        with open(input.chewbbaca_start) as fh: t_c_start = float(fh.read().strip())
+
         runtime_minutes = (t_end - t_start) / 60.0
         print(f"runtime in minutes {runtime_minutes}")
 
@@ -229,6 +258,9 @@ rule dump_info:
         sc["time_end"] = datetime.datetime.fromtimestamp(t_end).strftime("%Y-%m-%d %H:%M:%S")
         sc["time_running"] = round(runtime_minutes, 3)
         sc["git_hash"] = git_hash
+
+        sc["blast_time_running"] = round(((t_b_end - t_start) / 60.0), 3)
+	sc["chewbbaca_time_running"] = round(((t_end - t_c_start) / 60.0), 3)
 	
         sc.save()
 

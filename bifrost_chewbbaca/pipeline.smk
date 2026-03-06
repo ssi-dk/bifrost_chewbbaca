@@ -42,7 +42,7 @@ try:
     species_detection = sample.get_category("species_detection")
     species = species_detection["summary"].get("species", None)
     species_sp = species.split()[0]
-    print(f"Species is {species} and species_sp is {species_sp}")
+    #print(f"Species is {species} and species_sp is {species_sp}")
 
     common.set_status_and_save(sample, samplecomponent, "Running")
     
@@ -106,8 +106,8 @@ rule check_requirements:
 
 #* Dynamic section: start **************************************************************************
 
-rule_name = "blast_gene_call"
-rule blast_gene_call:
+rule_name = "blast_locus_call"
+rule blast_locus_call:
     message:
         f"Running step:{rule_name}"
     log:
@@ -123,20 +123,20 @@ rule blast_gene_call:
         samplecomponent_ref_json = samplecomponent.to_reference().json,
         chewbbaca_blastdb = f"{os.environ['BIFROST_CG_MLST_DIR']}/blastdb/",
         chewbbaca_schemes = f"{os.environ['BIFROST_CG_MLST_DIR']}/schemes/",
-	chunk_output_dir = f"{component['name']}/blast_gene_call_results/fasta_chunks/",
-	log_output_dir = f"{component['name']}/blast_gene_call_results/log/",
+	chunk_output_dir = f"{component['name']}/blast_locus_call_results/fasta_chunks/",
+	log_output_dir = f"{component['name']}/blast_locus_call_results/log/",
 	chunk_size = 50,
 	num_threads = 6
     output:
-        gene_call_results = directory(f"{component['name']}/blast_gene_call_results"),
-        gene_calls = f"{component['name']}/blast_gene_call_results/gene_calls.fa",
-        gene_call_done = f"{component['name']}/blast_gene_call_done"
+        locus_call_results = directory(f"{component['name']}/blast_locus_call_results"),
+        locus_calls = f"{component['name']}/blast_gene_call_results/locus_calls.fa",
+        locus_call_done = f"{component['name']}/blast_locus_call_done"
     script:
-        os.path.join(os.path.dirname(workflow.snakefile), "rule__blast_genecall.py")
+        os.path.join(os.path.dirname(workflow.snakefile), "rule__blast_locuscall.py")
 
 rule set_blast_time_end:
     input:
-        rules.blast_gene_call.output.gene_call_done
+        rules.blast_locus_call.output.locus_call_done
     output:
         blast_end_file = f"{component['name']}/blast_time_end.txt"
     run:
@@ -146,7 +146,7 @@ rule set_blast_time_end:
 
 rule set_chewbbaca_time_start:
     input:
-        rules.blast_gene_call.output.gene_call_done,
+        rules.blast_locus_call.output.locus_call_done,
     output:
         chewbbaca_start_file = f"{component['name']}/chewbbaca_time_start.txt"
     run:
@@ -166,12 +166,10 @@ rule run_chewbbaca_on_genome:
     input:
         rules.check_requirements.output.check_file,
         rules.set_chewbbaca_time_start.output.chewbbaca_start_file,
-        rules.blast_gene_call.output.gene_call_done,
-        #genome = f"{sample['categories']['contigs']['summary']['data']}"
-        genome = rules.blast_gene_call.output.gene_calls
+        rules.blast_locus_call.output.locus_call_done,
+        genome = rules.blast_locus_call.output.locus_calls
     output:
         chewbbaca_results = directory(f"{component['name']}/chewbbaca_results"),
-        #results_tsv = f"{component['name']}/chewbbaca_results/output/results_alleles.tsv",
         chewbbaca_done = f"{component['name']}/chewbbaca_done"
     params:
         samplecomponent_ref_json = samplecomponent.to_reference().json,

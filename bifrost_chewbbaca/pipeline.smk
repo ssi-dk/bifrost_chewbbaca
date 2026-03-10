@@ -42,6 +42,19 @@ try:
     species_detection = sample.get_category("species_detection")
     species = species_detection["summary"].get("species", None)
     species_sp = species.split()[0]
+
+    # Determine species
+    detected_species = species_detection["summary"]["detected_species"]
+
+    # Mapping dictionary from component config
+    schema_mapping = component["options"]["chewbbaca_species_mapping"]["schema"]
+
+    # Resolve schema name
+    SCHEMA_NAME = schema_mapping[detected_species]
+
+    # Resolve schema directory
+    SCHEMA_DIR = os.path.join(os.environ["BIFROST_CG_MLST_DIR"], "schemes", SCHEMA_NAME)
+
     #print(f"Species is {species} and species_sp is {species_sp}")
 
     common.set_status_and_save(sample, samplecomponent, "Running")
@@ -59,7 +72,10 @@ onerror:
 envvars:
     "BIFROST_INSTALL_DIR",
     "BIFROST_CG_MLST_DIR",
-    "CONDA_PREFIX"
+    "CONDA_PREFIX",
+    "BIFROST_CPUS_BIG",
+
+JOB_CPUS = int(os.environ.get("BIFROST_CPUS_BIG", 1))
 
 rule all:
     input:
@@ -126,10 +142,10 @@ rule blast_locus_call:
 	chunk_output_dir = f"{component['name']}/blast_locus_call_results/fasta_chunks/",
 	log_output_dir = f"{component['name']}/blast_locus_call_results/log/",
 	chunk_size = 50,
-	num_threads = 6
+	num_threads = JOB_CPUS
     output:
         locus_call_results = directory(f"{component['name']}/blast_locus_call_results"),
-        locus_calls = f"{component['name']}/blast_gene_call_results/locus_calls.fa",
+        locus_calls = f"{component['name']}/blast_locus_call_results/locus_calls.fa",
         locus_call_done = f"{component['name']}/blast_locus_call_done"
     script:
         os.path.join(os.path.dirname(workflow.snakefile), "rule__blast_locuscall.py")
@@ -154,6 +170,10 @@ rule set_chewbbaca_time_start:
         with open(output.chewbbaca_start_file, "w") as fh:
             fh.write(str(time.time()))
 
+CHEWB_SCRIPT = os.path.realpath(
+    os.path.join(os.path.dirname(workflow.snakefile), "chewBBACA/CHEWBBACA/chewBBACA.py")
+)
+
 rule_name = "run_chewbbaca_on_genome"
 rule run_chewbbaca_on_genome:
     message:
@@ -172,11 +192,38 @@ rule run_chewbbaca_on_genome:
         chewbbaca_results = directory(f"{component['name']}/chewbbaca_results"),
         chewbbaca_done = f"{component['name']}/chewbbaca_done"
     params:
-        samplecomponent_ref_json = samplecomponent.to_reference().json,
-        chewbbaca_schemes = f"{os.environ['BIFROST_CG_MLST_DIR']}/schemes/",
-    script:
-        os.path.join(os.path.dirname(workflow.snakefile), "rule__chewbbaca.py")
+        threads = JOB_CPUS,
+        chewbbaca_script = CHEWB_SCRIPT,
+        schema_name = SCHEMA_NAME,
+        schema_dir = SCHEMA_DIR
+    shell:
+        r"""
+        set -euo pipefail
 
+        echo "DEBUG: schema_name = {params.schema_name}"
+        echo "DEBUG: schema_dir  = {params.schema_dir}"
+
+        mkdir -p {output.chewbbaca_results}/input
+        #mkdir -p {output.chewbbaca_results}/output
+
+        ln -sf $(realpath {input.genome}) {output.chewbbaca_results}/input/genome.fasta
+
+        echo "{params.schema_name}" > {output.chewbbaca_results}/schema
+
+        {params.chewbbaca_script} AlleleCall \
+            -i {output.chewbbaca_results}/input \
+            -g "{params.schema_dir}" \
+            -o {output.chewbbaca_results}/output \
+            --blast-max-target-seqs 2000 --blast-max-hsps 2 --blast-evalue 0.05 --cpu {params.threads} \
+            --cds --wait-time 120 --lock-stale 4 \
+            1>> {log.out_file} \
+            2>> {log.err_file}
+
+        # Normalize output folder name
+        #mv {output.chewbbaca_results}/results_* {output.chewbbaca_results}/output
+
+        touch {output.chewbbaca_done}
+        """
 
 #* Dynamic section: end ****************************************************************************
 

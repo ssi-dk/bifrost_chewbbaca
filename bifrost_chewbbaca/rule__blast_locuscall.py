@@ -38,7 +38,7 @@ def rule__blast_locuscall(input: object, output: object, params: object, log: ob
             schema_dir=Path(params.chewbbaca_schemes)/component["options"]["chewbbaca_species_mapping"]['schema'][detected_species],
             output_file=Path(output.locus_calls),
             log=log,
-            max_workers=params.num_threads
+            max_workers=6
         )
 
         with open(output.locus_call_done, "w", encoding="utf-8") as fh:

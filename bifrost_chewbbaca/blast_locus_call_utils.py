@@ -6,14 +6,21 @@ import warnings
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from collections import Counter
+from datetime import datetime, timezone 
 
 from Bio.Seq import Seq
 from pyfaidx import Fasta
 
+import tempfile
 
-# local xfs / tmp
-LOCAL_CWD = "/tmp/chewbbaca_runs"
-os.makedirs(LOCAL_CWD, exist_ok=True)
+# Pick a base tmp dir that is *meant* for the current job/user
+TMP_BASE = os.environ.get("TMPDIR", "/tmp")
+
+# Create a unique, private temp dir for THIS run of the script
+LOCAL_CWD = tempfile.mkdtemp(prefix="chewbbaca_runs_", dir=TMP_BASE)
+
+# (optional) make sure permissions are sane even with umask weirdness
+os.chmod(LOCAL_CWD, 0o700)
 
 # Define valid bases and codon sets (uppercase)
 VALID_BASES = set(("A", "T", "C", "G"))
@@ -320,10 +327,20 @@ def run_blast_locus(
         "-num_threads", "1",
     ]
 
+    start = datetime.now(timezone.utc)
+    print(f"[{start.isoformat()}] Starting BLAST for locus={locus_name} assembly={assembly_name}")
+
     try:
         subprocess.run(cmd, check=True)
     except subprocess.CalledProcessError as e:
-        raise RuntimeError(f"BLAST failed for locus {locus_name} on {assembly_name}: {e}") from e
+        end = datetime.now(timezone.utc)
+        print(f"[{end.isoformat()}] BLAST FAILED for locus={locus_name} assembly={assembly_name} (elapsed: {end - start})")
+        raise RuntimeError(
+            f"BLAST failed for locus {locus_name} on {assembly_name}: {e}"
+        ) from e
+    else:
+        end = datetime.now(timezone.utc)
+        print(f"[{end.isoformat()}] Finished BLAST for locus={locus_name} assembly={assembly_name} (elapsed: {end - start})")
 
     alleles = []
     if os.path.exists(blast_output):

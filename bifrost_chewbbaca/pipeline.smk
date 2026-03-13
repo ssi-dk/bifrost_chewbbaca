@@ -143,8 +143,8 @@ rule blast_locus_call:
 	chunk_output_dir = f"{component['name']}/blast_locus_call_results/fasta_chunks/",
 	log_output_dir = f"{component['name']}/blast_locus_call_results/log/",
 	chunk_size = 50,
-	num_threads = 6
-    threads: 6
+	num_threads = JOB_CPUS,
+    threads: 1
     output:
         locus_call_results = directory(f"{component['name']}/blast_locus_call_results"),
         locus_calls = f"{component['name']}/blast_locus_call_results/locus_calls.fa",
@@ -198,6 +198,7 @@ rule run_chewbbaca_on_genome:
         chewbbaca_script = CHEWB_SCRIPT,
         schema_name = SCHEMA_NAME,
         schema_dir = SCHEMA_DIR
+    threads: JOB_CPUS
     shell:
         r"""
         set -euo pipefail

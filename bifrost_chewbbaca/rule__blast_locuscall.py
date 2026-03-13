@@ -11,6 +11,12 @@ from blast_locus_call_utils import (
                                    process_single_assembly,
                                    )
 
+import sys
+
+sys.stdout = open(snakemake.log.out_file, "a")
+sys.stderr = open(snakemake.log.err_file, "a")
+
+
 def rule__blast_locuscall(input: object, output: object, params: object, log: object) -> None:
     try:
         samplecomponent_ref_json = params.samplecomponent_ref_json

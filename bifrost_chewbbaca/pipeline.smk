@@ -144,7 +144,7 @@ rule blast_locus_call:
 	log_output_dir = f"{component['name']}/blast_locus_call_results/log/",
 	chunk_size = 50,
 	num_threads = JOB_CPUS,
-    threads: 1
+    threads: JOB_CPUS
     output:
         locus_call_results = directory(f"{component['name']}/blast_locus_call_results"),
         locus_calls = f"{component['name']}/blast_locus_call_results/locus_calls.fa",

@@ -7,11 +7,17 @@ from bifrostlib.datahandling import Component, Sample
 from bifrostlib.datahandling import SampleComponentReference
 from bifrostlib.datahandling import SampleComponent
 from pathlib import Path
-from blast_gene_call_utils import (
+from blast_locus_call_utils import (
                                    process_single_assembly,
                                    )
 
-def rule__blast_genecall(input: object, output: object, params: object, log: object) -> None:
+import sys
+
+sys.stdout = open(snakemake.log.out_file, "a")
+sys.stderr = open(snakemake.log.err_file, "a")
+
+
+def rule__blast_locuscall(input: object, output: object, params: object, log: object) -> None:
     try:
         samplecomponent_ref_json = params.samplecomponent_ref_json
         samplecomponent_ref = SampleComponentReference(value=samplecomponent_ref_json)
@@ -24,7 +30,6 @@ def rule__blast_genecall(input: object, output: object, params: object, log: obj
         species_detection = sample.get_category("species_detection")
         detected_species = species_detection["summary"]["detected_species"]
         
-        """
         print(f"species detection {species_detection}\n")
         print(f"detected species {detected_species}\n\n")
         print(f"testing config file {Path(params.chewbbaca_blastdb)}\n")
@@ -32,19 +37,17 @@ def rule__blast_genecall(input: object, output: object, params: object, log: obj
         print(f"component params {params.chewbbaca_blastdb}\n\n")
         print(f"check test 2 {component['options']['chewbbaca_species_mapping']['blastdb']}\n\n")
         print(f"used database {component['options']['chewbbaca_species_mapping']['blastdb'][detected_species]}\n\n")
-        """
 
-        os.makedirs(output.gene_call_results, exist_ok=True)
+        os.makedirs(output.locus_call_results, exist_ok=True)
         process_single_assembly(
             assembly_path=Path(input.genome),
             schema_dir=Path(params.chewbbaca_schemes)/component["options"]["chewbbaca_species_mapping"]['schema'][detected_species],
-            # db=Path(params.chewbbaca_blastdb)/component["options"]["chewbbaca_species_mapping"]['blastdb'][detected_species],
-            output_file=Path(output.gene_calls),
+            output_file=Path(output.locus_calls),
             log=log,
-            max_workers=params.num_threads
+            max_workers=6
         )
 
-        with open(output.gene_call_done, "w", encoding="utf-8") as fh:
+        with open(output.locus_call_done, "w", encoding="utf-8") as fh:
             fh.write("")
     except Exception:
         with open(log.err_file, "w+", encoding="utf-8") as fh:
@@ -52,4 +55,4 @@ def rule__blast_genecall(input: object, output: object, params: object, log: obj
         raise
 
 
-rule__blast_genecall(snakemake.input, snakemake.output, snakemake.params, snakemake.log)
+rule__blast_locuscall(snakemake.input, snakemake.output, snakemake.params, snakemake.log)

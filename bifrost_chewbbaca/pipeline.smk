@@ -13,35 +13,51 @@ from bifrostlib.datahandling import SampleComponentReference
 from bifrostlib.datahandling import SampleComponent
 from bifrostlib.datahandling import BioDBReference
 from bifrostlib.datahandling import BioDB
-os.umask(0o2)
+from snakemake.io import directory
+import datetime
 
+os.umask(0o2)
 
 try:
     sample_ref = SampleReference(_id=config.get('sample_id', None), name=config.get('sample_name', None))
-    sample:Sample = Sample.load(sample_ref) # schema 2.1
+    sample: Sample = Sample.load(sample_ref)
     if sample is None:
         raise Exception("invalid sample passed")
-    sample_name =sample['name']
 
+    component_ref = ComponentReference(name=config['component_name'])
+    component: Component = Component.load(reference=component_ref)
+    if component is None:
+        raise Exception("invalid component passed")
+
+    samplecomponent_ref = SampleComponentReference(
+        name=SampleComponentReference.name_generator(sample.to_reference(), component.to_reference())
+    )
+    samplecomponent = SampleComponent.load(samplecomponent_ref)
+    if samplecomponent is None:
+        samplecomponent = SampleComponent(
+            sample_reference=sample.to_reference(),
+            component_reference=component.to_reference()
+        )
 
     species_detection = sample.get_category("species_detection")
     species = species_detection["summary"].get("species", None)
     species_sp = species.split()[0]
-    print(f"Species is {species} and species_sp is {species_sp}")
 
-    component_ref = ComponentReference(name=config['component_name'])
-    component:Component = Component.load(reference=component_ref) # schema 2.1
-    if component is None:
-        raise Exception("invalid component passed") # component needs to be in database
-    samplecomponent_ref = SampleComponentReference(name=SampleComponentReference.name_generator(sample.to_reference(), component.to_reference()))
-    samplecomponent = SampleComponent.load(samplecomponent_ref)
-    try:
-        print(samplecomponent.has_requirements())
-    except Exception:
-        samplecomponent:SampleComponent = SampleComponent(sample_reference=sample.to_reference(), component_reference=component.to_reference()) # schema 2.1
-        print(f"{samplecomponent.json}")
+    # Determine species
+    detected_species = species_detection["summary"]["detected_species"]
+
+    # Mapping dictionary from component config
+    schema_mapping = component["options"]["chewbbaca_species_mapping"]["schema"]
+
+    # Resolve schema name
+    SCHEMA_NAME = schema_mapping[detected_species]
+
+    # Resolve schema directory
+    SCHEMA_DIR = os.path.join(os.environ["BIFROST_CG_MLST_DIR"], "schemes", SCHEMA_NAME)
+
+    #print(f"Species is {species} and species_sp is {species_sp}")
+
     common.set_status_and_save(sample, samplecomponent, "Running")
-
     
 except Exception as error:
     print(traceback.format_exc(), file=sys.stderr)
@@ -56,8 +72,11 @@ onerror:
 envvars:
     "BIFROST_INSTALL_DIR",
     "BIFROST_CG_MLST_DIR",
-    "CONDA_PREFIX"
+    "CONDA_PREFIX",
+    "BIFROST_CPUS_BIG",
 
+#JOB_CPUS = int(os.environ.get("BIFROST_CPUS_BIG", 1))
+JOB_CPUS  = 6
 
 rule all:
     input:
@@ -66,15 +85,22 @@ rule all:
     run:
         common.set_status_and_save(sample, samplecomponent, "Success")
 
-rule setup:
+rule set_time_start:
     output:
-        init_file = touch(temp(f"{component['name']}/initialized")),
-    params:
-        folder = component['name']
+        start_file = f"{component['name']}/time_start.txt"
+    run:
+        import time
+        with open(output.start_file, "w") as fh:
+            fh.write(str(time.time()))
+
+rule setup:
+    input:
+        rules.set_time_start.output.start_file
+    output:
+        init_file = touch(f"{component['name']}/initialized")
     run:
         samplecomponent['path'] = os.path.join(os.getcwd(), component['name'])
         samplecomponent.save()
-
 
 rule_name = "check_requirements"
 rule check_requirements:
@@ -88,41 +114,17 @@ rule check_requirements:
     input:
         folder = rules.setup.output.init_file,
     output:
-        check_file = f"{component['name']}/requirements_met",
-    params:
-        samplecomponent
+        check_file = touch(f"{component['name']}/requirements_met"),
     run:
         if samplecomponent.has_requirements():
-          if not Path(output.check_file).exists():
-            with open(output.check_file, "w") as fh:
-                fh.write("")
-
+            pass
+	    
 #- Templated section: end --------------------------------------------------------------------------
 
 #* Dynamic section: start **************************************************************************
 
-# rule_name = "fetch_cgmlst_database"
-# rule fetch_cgmlst_database:
-#     message:
-#         f"Running step:{rule_name}"
-#     log:
-#         out_file = f"{component['name']}/log/{rule_name}.out.log",
-#         err_file = f"{component['name']}/log/{rule_name}.err.log",
-#     benchmark:
-#         f"{component['name']}/benchmarks/{rule_name}.benchmark"
-#     input:
-#         rules.check_requirements.output.check_file
-#     output:
-#         cgMLST_database_path = directory()
-#     params:
-#         samplecomponent_ref_json = samplecomponent.to_reference().json,
-#         chewbbaca_schemes = component['resources']['schemes']
-#     script:
-#         os.path.join(os.path.dirname(workflow.snakefile), "rule__chewbbaca.py")
-    
-
-rule_name = "blast_gene_call"
-rule blast_gene_call:
+rule_name = "blast_locus_call"
+rule blast_locus_call:
     message:
         f"Running step:{rule_name}"
     log:
@@ -132,21 +134,47 @@ rule blast_gene_call:
         f"{component['name']}/benchmarks/{rule_name}.benchmark"
     input:
         rules.check_requirements.output.check_file,
+        rules.set_time_start.output.start_file,
         genome = f"{sample['categories']['contigs']['summary']['data']}"
     params:
         samplecomponent_ref_json = samplecomponent.to_reference().json,
         chewbbaca_blastdb = f"{os.environ['BIFROST_CG_MLST_DIR']}/blastdb/",
         chewbbaca_schemes = f"{os.environ['BIFROST_CG_MLST_DIR']}/schemes/",
-	chunk_output_dir = f"{component['name']}/blast_gene_call_results/fasta_chunks/",
-	log_output_dir = f"{component['name']}/blast_gene_call_results/log/",
+	chunk_output_dir = f"{component['name']}/blast_locus_call_results/fasta_chunks/",
+	log_output_dir = f"{component['name']}/blast_locus_call_results/log/",
 	chunk_size = 50,
-	num_threads = 6
+	num_threads = JOB_CPUS,
+    threads: JOB_CPUS
     output:
-        gene_call_results = directory(f"{component['name']}/blast_gene_call_results"),
-        gene_calls = f"{component['name']}/blast_gene_call_results/gene_calls.fa",
-        gene_call_done = f"{component['name']}/blast_gene_call_done"
+        locus_call_results = directory(f"{component['name']}/blast_locus_call_results"),
+        locus_calls = f"{component['name']}/blast_locus_call_results/locus_calls.fa",
+        locus_call_done = f"{component['name']}/blast_locus_call_done"
     script:
-        os.path.join(os.path.dirname(workflow.snakefile), "rule__blast_genecall.py")
+        os.path.join(os.path.dirname(workflow.snakefile), "rule__blast_locuscall.py")
+
+rule set_blast_time_end:
+    input:
+        rules.blast_locus_call.output.locus_call_done
+    output:
+        blast_end_file = f"{component['name']}/blast_time_end.txt"
+    run:
+        import time
+        with open(output.blast_end_file, "w") as fh:
+            fh.write(str(time.time()))
+
+rule set_chewbbaca_time_start:
+    input:
+        rules.blast_locus_call.output.locus_call_done,
+    output:
+        chewbbaca_start_file = f"{component['name']}/chewbbaca_time_start.txt"
+    run:
+        import time
+        with open(output.chewbbaca_start_file, "w") as fh:
+            fh.write(str(time.time()))
+
+CHEWB_SCRIPT = os.path.realpath(
+    os.path.join(os.path.dirname(workflow.snakefile), "chewBBACA/CHEWBBACA/chewBBACA.py")
+)
 
 rule_name = "run_chewbbaca_on_genome"
 rule run_chewbbaca_on_genome:
@@ -159,20 +187,131 @@ rule run_chewbbaca_on_genome:
         f"{component['name']}/benchmarks/{rule_name}.benchmark"
     input:
         rules.check_requirements.output.check_file,
-        rules.blast_gene_call.output.gene_call_done,
-        #genome = f"{sample['categories']['contigs']['summary']['data']}"
-        genome = rules.blast_gene_call.output.gene_calls
+        rules.set_chewbbaca_time_start.output.chewbbaca_start_file,
+        rules.blast_locus_call.output.locus_call_done,
+        genome = rules.blast_locus_call.output.locus_calls
     output:
         chewbbaca_results = directory(f"{component['name']}/chewbbaca_results"),
-        #results_tsv = f"{component['name']}/chewbbaca_results/output/results_alleles.tsv",
         chewbbaca_done = f"{component['name']}/chewbbaca_done"
     params:
-        samplecomponent_ref_json = samplecomponent.to_reference().json,
-        chewbbaca_schemes = f"{os.environ['BIFROST_CG_MLST_DIR']}/schemes/",
-    script:
-        os.path.join(os.path.dirname(workflow.snakefile), "rule__chewbbaca.py")
+        threads = JOB_CPUS,
+        chewbbaca_script = CHEWB_SCRIPT,
+        schema_name = SCHEMA_NAME,
+        schema_dir = SCHEMA_DIR
+    threads: JOB_CPUS
+    shell:
+        r"""
+        set -euo pipefail
+
+        echo "DEBUG: schema_name = {params.schema_name}"
+        echo "DEBUG: schema_dir  = {params.schema_dir}"
+
+        mkdir -p {output.chewbbaca_results}/input
+        #mkdir -p {output.chewbbaca_results}/output
+
+        ln -sf $(realpath {input.genome}) {output.chewbbaca_results}/input/genome.fasta
+
+        echo "{params.schema_name}" > {output.chewbbaca_results}/schema
+
+        {params.chewbbaca_script} AlleleCall \
+            -i {output.chewbbaca_results}/input \
+            -g "{params.schema_dir}" \
+            -o {output.chewbbaca_results}/output \
+            --blast-max-target-seqs 2000 --blast-max-hsps 2 --blast-evalue 0.05 --cpu {params.threads} \
+            --cds --wait-time 120 --lock-stale 4 \
+            1>> {log.out_file} \
+            2>> {log.err_file}
+
+        # Normalize output folder name
+        #mv {output.chewbbaca_results}/results_* {output.chewbbaca_results}/output
+
+        touch {output.chewbbaca_done}
+        """
 
 #* Dynamic section: end ****************************************************************************
+
+rule set_time_end:
+    input:
+        rules.run_chewbbaca_on_genome.output.chewbbaca_done
+    output:
+        end_file = f"{component['name']}/time_end.txt"
+    run:
+        import time
+        with open(output.end_file, "w") as fh:
+            fh.write(str(time.time()))
+
+rule_name = "git_version"
+rule git_version:
+    message:
+        f"Running step:{rule_name}"
+    log:
+        out_file = f"{component['name']}/log/{rule_name}.out.log",
+        err_file = f"{component['name']}/log/{rule_name}.err.log",
+    benchmark:
+        f"{component['name']}/benchmarks/{rule_name}.benchmark"
+    input:
+        rules.setup.output.init_file
+    output:
+        git_hash = f"{component['name']}/git_hash.txt"
+    run:
+        import subprocess, os
+
+        snake_dir = os.path.dirname(workflow.snakefile)
+
+        # Best effort: get commit hash; if not a git repo, write "-"
+        try:
+            git_hash = subprocess.check_output(
+                ["git", "-C", snake_dir, "rev-parse", "HEAD"],
+                stderr=subprocess.STDOUT,
+                text=True
+            ).strip()
+        except Exception as e:
+            git_hash = "-"
+            os.makedirs(os.path.dirname(log.err_file), exist_ok=True)
+            with open(log.err_file, "a") as fh:
+                fh.write(f"[git_version] Could not determine git hash from {snake_dir}: {e}\n")
+
+        with open(output.git_hash, "w") as fh:
+            fh.write(str(git_hash))
+
+rule dump_info:
+    input:
+        start_file = rules.set_time_start.output.start_file,
+        end_file = rules.set_time_end.output.end_file,
+        git_hash = rules.git_version.output.git_hash,
+        blast_end = rules.set_blast_time_end.output.blast_end_file,
+        chewbbaca_start = rules.set_chewbbaca_time_start.output.chewbbaca_start_file,
+    output:
+        runtime_flag = touch(f"{component['name']}/runtime_set")
+    run:
+        import time
+        from bifrostlib.datahandling import SampleComponent
+
+        with open(input.start_file) as fh:
+            t_start = float(fh.read().strip())
+        with open(input.end_file) as fh:
+            t_end = float(fh.read().strip())
+        with open(input.git_hash) as fh:
+            git_hash = str(fh.read().strip())
+
+        with open(input.blast_end) as fh: t_b_end = float(fh.read().strip())
+
+        with open(input.chewbbaca_start) as fh: t_c_start = float(fh.read().strip())
+
+        runtime_minutes = (t_end - t_start) / 60.0
+        print(f"runtime in minutes {runtime_minutes}")
+
+        sc = SampleComponent.load(samplecomponent.to_reference())
+        sc["time_start"] = datetime.datetime.fromtimestamp(t_start).strftime("%Y-%m-%d %H:%M:%S")
+        sc["time_end"] = datetime.datetime.fromtimestamp(t_end).strftime("%Y-%m-%d %H:%M:%S")
+        sc["time_running"] = round(runtime_minutes, 3)
+        sc["git_hash"] = git_hash
+
+        sc["blast_time_running"] = round(((t_b_end - t_start) / 60.0), 3)
+	sc["chewbbaca_time_running"] = round(((t_end - t_c_start) / 60.0), 3)
+	
+        sc.save()
+
 
 #- Templated section: start ------------------------------------------------------------------------
 rule_name = "datadump"
@@ -185,9 +324,8 @@ rule datadump:
     benchmark:
         f"{component['name']}/benchmarks/{rule_name}.benchmark"
     input:
-        #* Dynamic section: start ******************************************************************
-        rules.run_chewbbaca_on_genome.output.chewbbaca_results  # Needs to be output of final rule
-        #* Dynamic section: end ********************************************************************
+        rules.run_chewbbaca_on_genome.output.chewbbaca_results,
+        rules.dump_info.output.runtime_flag
     output:
         complete = rules.all.input
     params:

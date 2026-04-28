@@ -172,7 +172,6 @@ rule run_chewbbaca_on_genome:
     benchmark:
         f"{component['name']}/benchmarks/{rule_name}.benchmark"
     input:
-        rules.check_requirements.output.check_file,
         rules.set_chewbbaca_time_start.output.chewbbaca_start_file,
         rules.blast_locus_call.output.locus_call_done,
         genome = rules.blast_locus_call.output.locus_calls

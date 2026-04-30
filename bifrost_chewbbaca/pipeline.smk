@@ -202,7 +202,7 @@ rule run_chewbbaca_on_genome:
             -i {output.chewbbaca_results}/input \
             -g "{params.schema_dir}" \
             -o {output.chewbbaca_results}/output \
-            --blast-max-target-seqs 2000 --blast-max-hsps 2 --blast-evalue 0.05 --cpu {params.threads} \
+            --cpu {params.threads} \
             --cds --wait-time 120 --lock-stale 4 \
             1>> {log.out_file} \
             2>> {log.err_file}

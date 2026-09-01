@@ -79,8 +79,7 @@ envvars:
     "CONDA_PREFIX",
     "BIFROST_CPUS_BIG",
 
-#JOB_CPUS = int(os.environ.get("BIFROST_CPUS_BIG", 1))
-JOB_CPUS  = 6
+JOB_CPUS = int(os.environ.get("BIFROST_CPUS_BIG", 1))
 
 rule all:
     input:
@@ -125,10 +124,10 @@ rule blast_locus_call:
     params:
         samplecomponent_ref_json = samplecomponent.to_reference().json,
         chewbbaca_schemes = f"{os.environ['BIFROST_CG_MLST_DIR']}/schemes/",
-	chunk_output_dir = f"{component['name']}/blast_locus_call_results/fasta_chunks/",
-	log_output_dir = f"{component['name']}/blast_locus_call_results/log/",
-	chunk_size = 50,
-	num_threads = JOB_CPUS,
+    chunk_output_dir = f"{component['name']}/blast_locus_call_results/fasta_chunks/",
+    log_output_dir = f"{component['name']}/blast_locus_call_results/log/",
+    chunk_size = 50,
+    num_threads = JOB_CPUS,
     threads: JOB_CPUS
     output:
         locus_call_results = directory(f"{component['name']}/blast_locus_call_results"),

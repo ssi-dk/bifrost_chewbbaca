@@ -16,6 +16,7 @@ import sys
 sys.stdout = open(snakemake.log.out_file, "a")
 sys.stderr = open(snakemake.log.err_file, "a")
 
+JOB_CPUS = int(os.environ.get("BIFROST_CPUS_BIG", 1))
 
 def rule__blast_locuscall(input: object, output: object, params: object, log: object) -> None:
     try:
@@ -40,7 +41,7 @@ def rule__blast_locuscall(input: object, output: object, params: object, log: ob
             schema_dir=Path(params.chewbbaca_schemes)/component["options"]["chewbbaca_species_mapping"]['schema'][detected_species],
             output_file=Path(output.locus_calls),
             log=log,
-            max_workers=6
+            max_workers=JOB_CPUS
         )
 
         with open(output.locus_call_done, "w", encoding="utf-8") as fh:

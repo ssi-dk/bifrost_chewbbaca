@@ -124,9 +124,9 @@ rule blast_locus_call:
     params:
         samplecomponent_ref_json = samplecomponent.to_reference().json,
         chewbbaca_schemes = f"{os.environ['BIFROST_CG_MLST_DIR']}/schemes/",
-    chunk_output_dir = f"{component['name']}/blast_locus_call_results/fasta_chunks/",
-    log_output_dir = f"{component['name']}/blast_locus_call_results/log/",
-    chunk_size = 50,
+        chunk_output_dir = f"{component['name']}/blast_locus_call_results/fasta_chunks/",
+        log_output_dir = f"{component['name']}/blast_locus_call_results/log/",
+        chunk_size = 50,
     num_threads = JOB_CPUS,
     threads: JOB_CPUS
     output:

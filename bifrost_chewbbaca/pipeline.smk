@@ -123,11 +123,7 @@ rule blast_locus_call:
         genome = f"{sample['categories']['contigs']['summary']['data']}"
     params:
         samplecomponent_ref_json = samplecomponent.to_reference().json,
-        chewbbaca_schemes = f"{os.environ['BIFROST_CG_MLST_DIR']}/schemes/",
-        chunk_output_dir = f"{component['name']}/blast_locus_call_results/fasta_chunks/",
-        log_output_dir = f"{component['name']}/blast_locus_call_results/log/",
-        chunk_size = 50,
-    num_threads = JOB_CPUS,
+        chewbbaca_schemes = f"{os.environ['BIFROST_CG_MLST_DIR']}/schemes/"
     threads: JOB_CPUS
     output:
         locus_call_results = directory(f"{component['name']}/blast_locus_call_results"),
@@ -177,7 +173,6 @@ rule run_chewbbaca_on_genome:
         chewbbaca_results = directory(f"{component['name']}/chewbbaca_results"),
         chewbbaca_done = f"{component['name']}/chewbbaca_done"
     params:
-        threads = JOB_CPUS,
         chewbbaca_script = CHEWB_SCRIPT,
         schema_name = SCHEMA_NAME,
         schema_dir = SCHEMA_DIR
@@ -200,7 +195,7 @@ rule run_chewbbaca_on_genome:
             -i {output.chewbbaca_results}/input \
             -g "{params.schema_dir}" \
             -o {output.chewbbaca_results}/output \
-            --cpu {params.threads} \
+            --cpu {threads} \
             --cds --wait-time 120 --lock-stale 4 \
             1>> {log.out_file} \
             2>> {log.err_file}
@@ -316,3 +311,4 @@ rule datadump:
     script:
         os.path.join(os.path.dirname(workflow.snakefile), "datadump.py")
 #- Templated section: end --------------------------------------------------------------------------
+

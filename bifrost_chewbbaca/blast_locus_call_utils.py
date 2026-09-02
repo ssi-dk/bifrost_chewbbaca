@@ -38,6 +38,7 @@ from pathlib import Path
 from collections import Counter, defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
+from shutil import copytree, ignore_patterns
 
 from Bio import SeqIO
 from Bio.Seq import Seq
@@ -1913,6 +1914,14 @@ def process_single_assembly(
         dir=LOCAL_CWD,
     ) as assembly_tmpdir:
         assembly_index = os.path.join(assembly_tmpdir, "assembly.fai")
+        schema_local_dir = Path(os.path.join(assembly_tmpdir, schema_dir.stem))
+
+        try:
+            copytree(schema_dir, schema_local_dir, ignore=ignore_patterns('loci_modes'))
+        except Exception as exc:
+            raise RuntimeError(
+                f"Failed to copy schema to local disk: {schema_local_dir}: {exc}"
+            ) from exc
   
         try:
             genome = Fasta(str(assembly_path), indexname=assembly_index)
@@ -1930,7 +1939,7 @@ def process_single_assembly(
                     executor.submit(
                         run_blast_locus,
                         assembly_path,
-                        schema_dir / locus,
+                        schema_local_dir / locus,
                         genome,
                         assembly_name,
                         min_cov_ratio,
@@ -1980,4 +1989,5 @@ def process_single_assembly(
     )
     print(summary, file=sys.stderr)
     _emit_pipeline_log(log, summary)
+
 

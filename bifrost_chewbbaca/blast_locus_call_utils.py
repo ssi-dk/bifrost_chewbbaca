@@ -1770,42 +1770,6 @@ def run_blast_locus(
     return alleles, decisions
 
 
-def check_for_lock(
-    lock_file: Path,
-    wait_sec: int = 60,
-    stale_after_sec: int | None = 4 * 3600,
-) -> None:
-    """
-    Wait while a schema-writer lock exists.
-
-    This preserves the utility pipeline's protection against reading locus
-    FASTAs while another process is updating them. A stale lock can be removed
-    after stale_after_sec; active locks are checked at wait_sec intervals.
-    """
-    lock_file = Path(lock_file)
-
-    while True:
-        try:
-            stat_result = lock_file.stat()
-        except FileNotFoundError:
-            return
-
-        if stale_after_sec is not None:
-            age = time.time() - stat_result.st_mtime
-            if age > stale_after_sec:
-                try:
-                    lock_file.unlink()
-                    print(
-                        f"[WARNING] Removed stale schema lock {lock_file} "
-                        f"(age {age:.0f} seconds).",
-                        file=sys.stderr,
-                    )
-                    return
-                except FileNotFoundError:
-                    return
-
-        time.sleep(wait_sec)
-
 
 def index_loci_fasta(loci_list: list, schema_dir: Path) -> None:
     """
@@ -1888,9 +1852,6 @@ def process_single_assembly(
     if max_stop_extend < 0 or max_stop_extend % 3 != 0:
         raise ValueError("max_stop_extend must be a non-negative multiple of 3")
 
-    # Keep the original schema-update lock convention, but do not create or
-    # modify any shared pyfaidx indexes in the schema directory.
-    check_for_lock(schema_dir / "temp_check.lock")
 
     loci = [f for f in os.listdir(schema_dir) if f.endswith(".fasta")]
     if not loci:

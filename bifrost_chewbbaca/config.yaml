@@ -30,7 +30,7 @@ install:
 # https://chewbbaca.readthedocs.io/en/latest/user/modules/DownloadSchema.html
 # chewBBACA.py DownloadSchema -sp 8 -sc 1 -o resources/Salmonella_enterica_8_1
 options:
-  chewbbaca_species_mapping: # (name)
+  chewbbaca_species_call: # (name)
     schema:
       Campylobacter jejuni: "campy_v2_pubmlst_20251104_clean_chewBBACA_sizefilter40_st_20p"
       Campylobacter coli: "campy_v2_pubmlst_20251104_clean_chewBBACA_sizefilter40_st_20p"
@@ -50,6 +50,28 @@ options:
       Salmonella bongori: "Salmonella_enterobase_cgMLSTv2_230207_clean_chewBBACA_sizefilter40_st_38p"
       Listeria monocytogenes: "listeria_bigsdb_cgmlst1748_clean_chewBBACA_sizefilter40_st_5p"
       Clostridioides difficile: "cdiff_cgMLST_ridom_clean_chewBBACA_sizefilter40_st_5p"
+
+  chewbbaca_species_mapping: # (name)
+    schema:
+      Campylobacter jejuni: "campy_v2_pubmlst_20251104_clean_stable_chewBBACA_sizefilter40_st_20p"
+      Campylobacter coli: "campy_v2_pubmlst_20251104_clean_stable_chewBBACA_sizefilter40_st_20p"
+      Campylobacter lari: "campy_v2_pubmlst_20251104_clean_stable_chewBBACA_sizefilter40_st_20p"
+      Campylobacter upsaliensis: "campy_v2_pubmlst_20251104_clean_stable_chewBBACA_sizefilter40_st_20p"
+      Campylobacter fetus: "campy_v2_pubmlst_20251104_clean_stable_chewBBACA_sizefilter40_st_20p"
+      Campylobacter helveticus: "campy_v2_pubmlst_20251104_clean_stable_chewBBACA_sizefilter40_st_20p"
+      Campylobacter sputorum: "campy_v2_pubmlst_20251104_clean_stable_chewBBACA_sizefilter40_st_20p"
+      Campylobacter concisus: "campy_v2_pubmlst_20251104_clean_stable_chewBBACA_sizefilter40_st_20p"
+      Campylobacter hyointestinalis: "campy_v2_pubmlst_20251104_clean_stable_chewBBACA_sizefilter40_st_20p"
+      Escherichia coli: "Escherichia_cgMLSTv1_clean_stable_chewBBACA_sizefilter40_st_25p"
+      Shigella sonnei: "Escherichia_cgMLSTv1_clean_stable_chewBBACA_sizefilter40_st_25p"
+      Shigella flexneri: "Escherichia_cgMLSTv1_clean_stable_chewBBACA_sizefilter40_st_25p"
+      Shigella boydii: "Escherichia_cgMLSTv1_clean_stable_chewBBACA_sizefilter40_st_25p"
+      Shigella dysenteriae: "Escherichia_cgMLSTv1_clean_stable_chewBBACA_sizefilter40_st_25p"
+      Salmonella enterica: "Salmonella_enterobase_cgMLSTv2_230207_clean_stable_chewBBACA_sizefilter40_st_38p"
+      Salmonella bongori: "Salmonella_enterobase_cgMLSTv2_230207_clean_stable_chewBBACA_sizefilter40_st_38p"
+      Listeria monocytogenes: "listeria_bigsdb_cgmlst1748_clean_stable_chewBBACA_sizefilter40_st_5p"
+      Clostridioides difficile: "cdiff_cgMLST_ridom_clean_stable_chewBBACA_sizefilter40_st_5p"
+
 
 
 #---------------------------------------------------------------------------------------------------

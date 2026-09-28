@@ -46,6 +46,8 @@ try:
     # Determine species
     detected_species = species_detection["summary"]["species"]
 
+
+	# for blast gene calls 
     # Mapping dictionary from component config
     schema_mapping = component["options"]["chewbbaca_species_mapping"]["schema"]
 
@@ -55,7 +57,17 @@ try:
     # Resolve schema directory
     SCHEMA_DIR = os.path.join(os.environ["BIFROST_CG_MLST_DIR"], "schemes", SCHEMA_NAME)
 
-    #print(f"Species is {species} and species_sp is {species_sp}")
+	# for calling alleles with chewBBACA 
+    # Mapping dictionary from component config
+    schema_call = component["options"]["chewbbaca_species_call"]["schema"]
+
+    # Resolve schema name
+    SCHEMA_NAME_CALL = schema_call[detected_species]
+
+    # Resolve schema directory
+    SCHEMA_DIR_CALL = os.path.join(os.environ["BIFROST_CG_MLST_DIR"], "schemes", SCHEMA_NAME_CALL)
+
+	#print(f"Species is {species} and species_sp is {species_sp}")
 
     common.set_status_and_save(sample, samplecomponent, "Running")
     
@@ -174,8 +186,8 @@ rule run_chewbbaca_on_genome:
         chewbbaca_done = f"{component['name']}/chewbbaca_done"
     params:
         chewbbaca_script = CHEWB_SCRIPT,
-        schema_name = SCHEMA_NAME,
-        schema_dir = SCHEMA_DIR
+        schema_name = SCHEMA_NAME_CALL,
+        schema_dir = SCHEMA_DIR_CALL
     threads: JOB_CPUS
     shell:
         r"""
